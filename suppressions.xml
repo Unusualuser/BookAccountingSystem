@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+        "-//Puppy Crawl//DTD Suppressions 1.1//EN"
+        "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+
+<suppressions>
+    <suppress checks="JavadocPackage" files="java$"/>
+    <suppress checks="JavadocType" files="java$"/>
+    <suppress checks="JavadocVariable" files="java$"/>
+    <suppress checks="JavadocMethod" files="java$"/>
+    <suppress checks="HiddenField" files="java$"/>
+    <suppress checks="LineLength" files="java$"/>
+    <suppress checks="AvoidInlineConditionals" files="java$"/>
+    <suppress checks="DesignForExtension" files="java$"/>
+    <suppress checks="OperatorWrap" files="java$"/>
+    <suppress checks="NeedBraces" files="java$"/>
+    <suppress checks="MagicNumber" files="java$"/>
+    <suppress checks="ConstantName" files="java$"/>
+    <suppress checks="VisibilityModifier" files="java$"/>
+    <suppress checks="MemberName" files="java$"/>
+    <suppress checks="NewlineAtEndOfFile" files="java$"/>
+    <suppress checks="HideUtilityClassConstructor" files="java$"/>
+    <suppress checks="InterfaceIsType" files="java$"/>
+    <suppress checks="MissingSwitchDefault" files="java$"/>
+    <suppress checks="ModifierOrder" files="java$"/>
+    <suppress checks="ParameterNumber" files="java$"/>
+    <suppress checks="StaticVariableName" files="java$"/>
+    <suppress checks="JavadocStyle" files="java$"/>
+    <suppress checks="EmptyForIteratorPad" files="java$"/>
+    <suppress checks="TodoComment" files="java$"/>
+    <suppress checks="EmptyStatement" files="java$"/>
+    <suppress checks="EmptyBlock" files="java$"/>
+    <suppress checks="InnerAssignment" files="java$"/>
+    <suppress checks="LocalVariableName" files="java$"/>
+    <suppress checks="FinalParameters" files="java$"/>
+
+
+    <suppress checks="RegexpSingleline" files="properties$"/>
+    <suppress checks="NewlineAtEndOfFile" files="properties$"/>
+    <suppress checks="FileLength" files="properties$"/>
+    <suppress checks="FileTabCharacter" files="properties$"/>
+    <suppress checks="Translation" files="properties$"/>
+
+</suppressions>

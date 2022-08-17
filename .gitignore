@@ -1,0 +1,22 @@
+##############################
+## Java
+##############################
+.mtj.tmp/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+
+##############################
+## IntelliJ
+##############################
+out/
+.idea/
+META-INF/
+.idea_modules/
+*.iml
+*.ipr
+*.iws
+/target/

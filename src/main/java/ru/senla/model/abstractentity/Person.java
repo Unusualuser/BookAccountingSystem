@@ -1,0 +1,57 @@
+package ru.senla.model.abstractentity;
+
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+import javax.persistence.Column;
+import javax.persistence.MappedSuperclass;
+import java.io.Serializable;
+
+@MappedSuperclass
+public abstract class Person implements Serializable {
+    @Column(name = "name", nullable = false)
+    @Size(min = 4, max = 100, message = "Не меньше 4 и не больше 100 символов")
+    protected String name;
+
+    @Column(name = "address", nullable = false)
+    @Size(max = 70, message = "Не больше 70 символов")
+    protected String address;
+
+    @Column(name = "phone_number", nullable = false)
+    @Pattern(regexp = "\\+7[0-9]{10}", message = "Номер телефона должен быть корректен. Пример: +79999999999")
+    protected String phoneNumber;
+
+    public Person() {
+
+    }
+
+    public Person(String name, String address, String phoneNumber) {
+        this.name = name;
+        this.address = address;
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
