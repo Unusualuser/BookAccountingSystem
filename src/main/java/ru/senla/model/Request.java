@@ -54,6 +54,11 @@ public class Request implements Serializable {
     public Request() {
     }
 
+    public Request(Book book, User user) {
+        this.book = book;
+        this.user = user;
+    }
+
     public Request(Long id, Book book, User user, LocalDateTime createDttm, RequestStatus requestStatus) {
         this.id = id;
         this.book = book;

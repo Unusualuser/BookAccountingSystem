@@ -38,6 +38,9 @@ public class BookHistory implements Serializable {
     @Column(name = "rental_date", nullable = false)
     private LocalDate rentalDate;
 
+    @Column(name = "return_deadline_date", nullable = false)
+    private LocalDate returnDeadlineDate;
+
     @Column(name = "return_date")
     private LocalDate returnDate;
 
@@ -51,11 +54,19 @@ public class BookHistory implements Serializable {
     public BookHistory() {
     }
 
-    public BookHistory(Long id, Book book, User user, LocalDate rentalDate, LocalDate returnDate) {
+    public BookHistory(Book book, User user, LocalDate rentalDate, LocalDate returnDeadlineDate) {
+        this.book = book;
+        this.user = user;
+        this.rentalDate = rentalDate;
+        this.returnDeadlineDate = returnDeadlineDate;
+    }
+
+    public BookHistory(Long id, Book book, User user, LocalDate rentalDate, LocalDate returnDeadlineDate, LocalDate returnDate) {
         this.id = id;
         this.book = book;
         this.user = user;
         this.rentalDate = rentalDate;
+        this.returnDeadlineDate = returnDeadlineDate;
         this.returnDate = returnDate;
     }
 
@@ -99,6 +110,14 @@ public class BookHistory implements Serializable {
         this.returnDate = returnDate;
     }
 
+    public LocalDate getReturnDeadlineDate() {
+        return returnDeadlineDate;
+    }
+
+    public void setReturnDeadlineDate(LocalDate returnDeadlineDate) {
+        this.returnDeadlineDate = returnDeadlineDate;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -110,11 +129,12 @@ public class BookHistory implements Serializable {
         return Objects.equals(id, that.id)
                 && Objects.equals(book, that.book)
                 && Objects.equals(user, that.user)
-                && Objects.equals(rentalDate, that.rentalDate);
+                && Objects.equals(rentalDate, that.rentalDate)
+                && Objects.equals(returnDeadlineDate, that.returnDeadlineDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, book, user, rentalDate);
+        return Objects.hash(id, book, user, rentalDate, returnDeadlineDate);
     }
 }

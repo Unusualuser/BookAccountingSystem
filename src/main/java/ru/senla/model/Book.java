@@ -1,6 +1,6 @@
 package ru.senla.model;
 
-import jakarta.validation.constraints.Size;
+import javax.validation.constraints.Size;
 import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxy;
 
@@ -9,7 +9,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.PrePersist;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import java.io.Serializable;
@@ -39,25 +38,23 @@ public class Book implements Serializable {
     @Size(max = 70, message = "Не больше 70 символов")
     private String description;
 
-    @Column(name = "amount", nullable = false)
-    private Long amount;
-
-    @PrePersist
-    protected void onCreate() {
-        this.amount = 0L;
-    }
-
     public Book() {
 
     }
 
-    public Book(Long id, String name, Integer publicationYear, String author, String description, Long amount) {
+    public Book(String name, Integer publicationYear, String author, String description) {
+        this.name = name;
+        this.publicationYear = publicationYear;
+        this.author = author;
+        this.description = description;
+    }
+
+    public Book(Long id, String name, Integer publicationYear, String author, String description) {
         this.id = id;
         this.name = name;
         this.publicationYear = publicationYear;
         this.author = author;
         this.description = description;
-        this.amount = amount;
     }
 
     public Long getId() {
@@ -100,14 +97,6 @@ public class Book implements Serializable {
         this.description = description;
     }
 
-    public Long getAmount() {
-        return amount;
-    }
-
-    public void setAmount(Long amount) {
-        this.amount = amount;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -117,14 +106,26 @@ public class Book implements Serializable {
             book = (Book) Hibernate.unproxy(o);
         }
         return Objects.equals(id, book.id)
-                && name.equals(book.name)
-                && publicationYear.equals(book.publicationYear)
-                && author.equals(book.author)
-                && description.equals(book.description);
+                && Objects.equals(name, book.name)
+                && Objects.equals(publicationYear, book.publicationYear)
+                && Objects.equals(author, book.author)
+                && Objects.equals(description, book.description);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, name, publicationYear, author);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Book{");
+        sb.append("id=").append(id);
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", publicationYear=").append(publicationYear);
+        sb.append(", author='").append(author).append('\'');
+        sb.append(", description='").append(description).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 }

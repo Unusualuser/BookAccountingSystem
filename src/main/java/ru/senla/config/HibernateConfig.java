@@ -1,6 +1,7 @@
 package ru.senla.config;
 
 import org.apache.commons.dbcp.BasicDataSource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
@@ -14,6 +15,17 @@ import java.util.Properties;
 @Configuration
 @EnableTransactionManagement
 public class HibernateConfig {
+    @Value("${hibernate.driver.class.name}")
+    private String hibernateDriverClassName;
+
+    @Value("${hibernate.database.url}")
+    private String hibernateDatabaseUrl;
+
+    @Value("$hibernate.database.username}")
+    private String hibernateDatabaseUsername;
+
+    @Value("${hibernate.database.password}")
+    private String hibernateDatabasePassword;
 
     @Bean
     public LocalSessionFactoryBean sessionFactory() {
@@ -21,7 +33,6 @@ public class HibernateConfig {
         sessionFactory.setDataSource(dataSource());
         sessionFactory.setPackagesToScan("ru.senla");
         sessionFactory.setHibernateProperties(hibernateProperties());
-
         return sessionFactory;
     }
 
@@ -32,7 +43,6 @@ public class HibernateConfig {
         dataSource.setUrl("jdbc:postgresql://localhost:5432/book_accounting_system");
         dataSource.setUsername("postgres");
         dataSource.setPassword("postgres");
-
         return dataSource;
     }
 
@@ -46,7 +56,6 @@ public class HibernateConfig {
     private Properties hibernateProperties() {
         Properties hibernateProperties = new Properties();
         hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "update");
-
         return hibernateProperties;
     }
 }

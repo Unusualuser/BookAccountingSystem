@@ -1,7 +1,7 @@
 package ru.senla.model.abstractentity;
 
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
@@ -9,15 +9,15 @@ import java.io.Serializable;
 
 @MappedSuperclass
 public abstract class Person implements Serializable {
-    @Column(name = "name", nullable = false)
+    @Column(name = "name")
     @Size(min = 4, max = 100, message = "Не меньше 4 и не больше 100 символов")
     protected String name;
 
-    @Column(name = "address", nullable = false)
+    @Column(name = "address")
     @Size(max = 70, message = "Не больше 70 символов")
     protected String address;
 
-    @Column(name = "phone_number", nullable = false)
+    @Column(name = "phone_number")
     @Pattern(regexp = "\\+7[0-9]{10}", message = "Номер телефона должен быть корректен. Пример: +79999999999")
     protected String phoneNumber;
 

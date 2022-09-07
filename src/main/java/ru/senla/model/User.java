@@ -1,7 +1,7 @@
 package ru.senla.model;
 
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxy;
 import org.springframework.security.core.GrantedAuthority;
@@ -46,7 +46,7 @@ public class User extends Person implements Serializable, UserDetails {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    @Column(name = "email", nullable = false)
+    @Column(name = "email")
     @Size(max = 255, message = "Не больше 255 символов")
     @Pattern(regexp = "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", flags = Pattern.Flag.CASE_INSENSITIVE, message = "Email должен быть корректен")
     private String email;
@@ -61,6 +61,12 @@ public class User extends Person implements Serializable, UserDetails {
         this.password = password;
         this.role = role;
         this.email = email;
+    }
+
+    public User(String login, String password, UserRole roleUser) {
+        this.login = login;
+        this.password = password;
+        this.role = roleUser;
     }
 
     @Override
@@ -154,5 +160,20 @@ public class User extends Person implements Serializable, UserDetails {
     @Override
     public int hashCode() {
         return Objects.hash(id, login, password, role, name, address, phoneNumber, email);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("User{");
+        sb.append("id=").append(id);
+        sb.append(", login='").append(login).append('\'');
+        sb.append(", password='").append(password).append('\'');
+        sb.append(", role=").append(role);
+        sb.append(", email='").append(email).append('\'');
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", address='").append(address).append('\'');
+        sb.append(", phoneNumber='").append(phoneNumber).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 }

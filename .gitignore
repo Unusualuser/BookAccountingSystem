@@ -20,3 +20,4 @@ META-INF/
 *.ipr
 *.iws
 /target/
+logs/
