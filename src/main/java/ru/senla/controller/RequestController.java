@@ -4,6 +4,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,11 +14,13 @@ import ru.senla.dto.RequestDTO;
 import ru.senla.model.Request;
 import ru.senla.service.RequestService;
 
+import javax.validation.constraints.Min;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
+@Validated
 public class RequestController {
     private final RequestService requestService;
 
@@ -26,7 +29,10 @@ public class RequestController {
     }
 
     @PostMapping("/request-book-by-id")
-    public ResponseEntity<?> requestBook(@RequestParam Long bookId, Authentication authentication) {
+    public ResponseEntity<?> requestBook(@Min(value = 0L, message = "Значение bookId должно быть положительным")
+                                         @RequestParam
+                                         Long bookId,
+                                         Authentication authentication) {
         String userLogin = authentication.getName();
 
         this.requestService.requestBookByIdAndUserLogin(bookId, userLogin);
@@ -34,9 +40,15 @@ public class RequestController {
     }
 
     @GetMapping("/moder/requests-by-book-id-for-period")
-    public ResponseEntity<?> getRequestsByBookIdForPeriod(@RequestParam Long bookId,
-                                                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime beginDttm,
-                                                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDttm) {
+    public ResponseEntity<?> getRequestsByBookIdForPeriod(@Min(value = 0L, message = "Значение bookId должно быть положительным")
+                                                          @RequestParam
+                                                          Long bookId,
+                                                          @RequestParam
+                                                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                                                          LocalDateTime beginDttm,
+                                                          @RequestParam
+                                                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                                                          LocalDateTime endDttm) {
         List<Request> requests = this.requestService.getRequestsByBookIdForPeriod(bookId, beginDttm, endDttm);
         List<RequestDTO> requestsDTO = requests.stream()
                                                .map(request -> new RequestDTO(
@@ -50,7 +62,9 @@ public class RequestController {
     }
 
     @GetMapping("/moder/requests-by-book-id")
-    public ResponseEntity<?> getAllRequestsByBookId(@RequestParam Long bookId) {
+    public ResponseEntity<?> getAllRequestsByBookId(@Min(value = 0L, message = "Значение bookId должно быть положительным")
+                                                    @RequestParam
+                                                    Long bookId) {
         List<Request> allRequests = this.requestService.getAllRequestsByBookId(bookId);
         List<RequestDTO> allRequestsDTO = allRequests.stream()
                 .map(request -> new RequestDTO(

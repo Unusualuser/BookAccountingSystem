@@ -18,9 +18,9 @@ import java.util.List;
 @Service
 public class RequestServiceImpl implements RequestService {
     private final static Logger LOGGER = Logger.getLogger(RequestServiceImpl.class);
-    private final RequestRepository requestRepository;
-    private final BookRepository bookRepository;
-    private final UserRepository userRepository;
+    private RequestRepository requestRepository;
+    private BookRepository bookRepository;
+    private UserRepository userRepository;
 
     public RequestServiceImpl(RequestRepository requestRepository, BookRepository bookRepository, UserRepository userRepository) {
         this.requestRepository = requestRepository;
@@ -37,7 +37,7 @@ public class RequestServiceImpl implements RequestService {
             Request request = new Request(bookToRequest, user);
 
             this.requestRepository.saveRequest(request);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при создании запроса на книгу.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Id запрашиваемой книги: %d, логин пользователя: %s.", bookId, userLogin));
@@ -49,10 +49,11 @@ public class RequestServiceImpl implements RequestService {
     public List<Request> getRequestsByBookIdForPeriod(Long id, LocalDateTime beginDttm, LocalDateTime endDttm) {
         try {
             return this.requestRepository.getRequestsByBookIdForPeriod(id, beginDttm, endDttm);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при получении запросов на книгу за период.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
-            LOGGER.debug(String.format("Id книги: %d, начало периода: %s, конец периода: %s.", id, beginDttm.toString(), endDttm.toString()));
+            if (beginDttm != null && endDttm != null)
+                LOGGER.debug(String.format("Id книги: %d, начало периода: %s, конец периода: %s.", id, beginDttm.toString(), endDttm.toString()));
             throw new RequestServiceOperationException(errorMessage, e);
         }
     }
@@ -61,7 +62,7 @@ public class RequestServiceImpl implements RequestService {
     public List<Request> getAllRequestsByBookId(Long bookId) {
         try {
         return this.requestRepository.getAllRequestsByBookId(bookId);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при получении всех запросов на книгу.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Id книги: %d.", bookId));

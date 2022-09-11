@@ -1,11 +1,18 @@
 package ru.senla.dto;
 
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 
 public class UpdateUserPersonalInfoRequestDTO implements Serializable {
+    @Size(max = 255, message = "Email должен быть не больше 255 символов")
+    @Pattern(regexp = "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", flags = Pattern.Flag.CASE_INSENSITIVE, message = "Email должен быть корректен")
     private String email;
+    @Size(min = 4, max = 100, message = "Имя должно быть не меньше 4 и не больше 100 символов")
     private String name;
+    @Size(max = 70, message = "Адрес должен быть не больше 70 символов")
     private String address;
+    @Pattern(regexp = "\\+7[0-9]{10}", message = "Номер телефона должен быть корректен. Пример: +79999999999")
     private String phoneNumber;
 
     public UpdateUserPersonalInfoRequestDTO() {

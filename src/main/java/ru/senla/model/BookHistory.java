@@ -14,6 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.validation.constraints.Min;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -25,6 +26,7 @@ public class BookHistory implements Serializable {
     @SequenceGenerator(name = "book_history_seq", sequenceName = "book_history_book_history_id_seq", allocationSize = 0)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "book_history_seq")
     @Column(name = "book_history_id", nullable = false)
+    @Min(value = 0L, message = "Значение id должно быть положительным")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

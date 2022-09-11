@@ -13,6 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.validation.constraints.Min;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -23,6 +24,7 @@ public class BookStorage implements Serializable {
     @SequenceGenerator(name = "book_storage_seq", sequenceName = "book_storage_book_storage_id_seq", allocationSize = 0)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "book_storage_seq")
     @Column(name = "book_storage_id", nullable = false)
+    @Min(value = 0L, message = "Значение id должно быть положительным")
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
@@ -30,6 +32,7 @@ public class BookStorage implements Serializable {
     private Book book;
 
     @Column(name = "quantity", nullable = false)
+    @Min(value = 0L, message = "Значение quantity должно быть положительным")
     private Long quantity;
 
     public BookStorage() {

@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
 @Service
 public class BookStorageServiceImpl implements BookStorageService {
     private final static Logger LOGGER = Logger.getLogger(BookStorageServiceImpl.class);
-    private final BookStorageRepository bookStorageRepository;
-    private final RequestRepository requestRepository;
-    private final EmailSender emailSender;
+    private BookStorageRepository bookStorageRepository;
+    private RequestRepository requestRepository;
+    private EmailSender emailSender;
 
     public BookStorageServiceImpl(BookStorageRepository bookStorageRepository,
                                   RequestRepository requestRepository,
@@ -42,7 +42,7 @@ public class BookStorageServiceImpl implements BookStorageService {
 
                 usersToNotify.forEach(user -> this.emailSender.sendMessage(user.getEmail(), emailSubject, emailMessage));
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при добавлении количества книг в хранилище.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Id книги: %d.", id));
@@ -54,7 +54,7 @@ public class BookStorageServiceImpl implements BookStorageService {
     public void reduceQuantityByBookId(Long id, Long quantityToBeReduce) {
         try {
             this.bookStorageRepository.reduceQuantityByBookId(id, quantityToBeReduce);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при убавлении количества книг в хранилище.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Id книги: %d.", id));
@@ -66,7 +66,7 @@ public class BookStorageServiceImpl implements BookStorageService {
     public Long getQuantityByBookId(Long id) {
         try {
             return this.bookStorageRepository.getQuantityByBookId(id);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при извлечении книг из хранилища.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Id книги: %d.", id));

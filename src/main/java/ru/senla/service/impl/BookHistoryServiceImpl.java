@@ -1,6 +1,7 @@
 package ru.senla.service.impl;
 
 import org.apache.log4j.Logger;
+import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +20,13 @@ import java.util.List;
 
 @Service
 public class BookHistoryServiceImpl implements BookHistoryService {
-    private final static Logger LOGGER = Logger.getLogger(BookStorageServiceImpl.class);
+    private final static Logger LOGGER = Logger.getLogger(BookHistoryServiceImpl.class);
     @Value("${book.rent.duration.in.month}")
     private int bookRentDurationInMonth;
-    private final BookHistoryRepository bookHistoryRepository;
-    private final BookRepository bookRepository;
-    private final UserRepository userRepository;
-    private final BookStorageRepository bookStorageRepository;
+    private BookHistoryRepository bookHistoryRepository;
+    private BookRepository bookRepository;
+    private UserRepository userRepository;
+    private BookStorageRepository bookStorageRepository;
 
     public BookHistoryServiceImpl(BookHistoryRepository bookHistoryRepository, BookRepository bookRepository, UserRepository userRepository, BookStorageRepository bookStorageRepository) {
         this.bookHistoryRepository = bookHistoryRepository;
@@ -46,7 +47,7 @@ public class BookHistoryServiceImpl implements BookHistoryService {
             LocalDate returnDeadlineDate = rentalDate.plusMonths(this.bookRentDurationInMonth);
 
             this.bookHistoryRepository.saveBookHistory(new BookHistory(book, user, rentalDate, returnDeadlineDate));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при добавлении новой записи об аренде книги.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Id книги: %d, логин пользователя: %s.", bookId, userLogin));
@@ -64,7 +65,7 @@ public class BookHistoryServiceImpl implements BookHistoryService {
             bookHistory.setReturnDate(returnDate);
 
             this.bookStorageRepository.incrementQuantityByBookId(bookHistory.getBook().getId());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при установке даты возврата.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Id записи истории книги: %d.", bookHistoryId));
@@ -76,7 +77,7 @@ public class BookHistoryServiceImpl implements BookHistoryService {
     public List<BookHistory> getFullBookHistoryByBookId(Long id) {
         try {
             return this.bookHistoryRepository.getFullBookHistoryByBookId(id);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при получении полной истории книги.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Id книги: %d.", id));
@@ -88,10 +89,11 @@ public class BookHistoryServiceImpl implements BookHistoryService {
     public List<BookHistory> getBookHistoriesByBookIdForPeriod(Long id, LocalDate beginDate, LocalDate endDate) {
         try {
             return this.bookHistoryRepository.getBookHistoriesByBookIdForPeriod(id, beginDate, endDate);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при получении истории книги за период.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
-            LOGGER.debug(String.format("Id книги: %d, дата начала периода: %s, дата конца периода: %s.", id, beginDate.toString(), endDate.toString()));
+            if (beginDate != null && endDate != null)
+                LOGGER.debug(String.format("Id книги: %d, дата начала периода: %s, дата конца периода: %s.", id, beginDate.toString(), endDate.toString()));
             throw new BookHistoryServiceOperationException(errorMessage, e);
         }
     }
@@ -100,7 +102,7 @@ public class BookHistoryServiceImpl implements BookHistoryService {
     public BookHistory getBookHistoryById(Long id) {
         try {
             return this.bookHistoryRepository.getBookHistoryById(id);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при получении истории книги.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Id истории книги: %d.", id));
@@ -112,10 +114,14 @@ public class BookHistoryServiceImpl implements BookHistoryService {
     public List<BookHistory> findAndGetExpiredRent() {
         try {
             return this.bookHistoryRepository.findAndGetExpiredRent();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при получении просроченных аренд книг.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             throw new BookHistoryServiceOperationException(errorMessage, e);
         }
+    }
+
+    public void setBookRentDurationInMonth(int bookRentDurationInMonth) {
+        this.bookRentDurationInMonth = bookRentDurationInMonth;
     }
 }

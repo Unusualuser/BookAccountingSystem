@@ -14,6 +14,8 @@ import ru.senla.model.fieldenum.UserRole;
 import ru.senla.security.JwtTokenProvider;
 import ru.senla.service.UserService;
 
+import javax.validation.Valid;
+
 @RestController
 public class AuthController {
     private final UserService userService;
@@ -31,17 +33,17 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterRequestDTO registerRequestDTO) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
         return register(registerRequestDTO, UserRole.ROLE_USER);
     }
 
     @PostMapping("/admin/register-moderator")
-    public ResponseEntity<?> registerModerator(@RequestBody RegisterRequestDTO registerRequestDTO) {
+    public ResponseEntity<?> registerModerator(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
         return register(registerRequestDTO, UserRole.ROLE_MODERATOR);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> auth(@RequestBody AuthRequestDTO request) {
+    public ResponseEntity<?> auth(@Valid @RequestBody AuthRequestDTO request) {
         User user = this.userService.getUserByLoginAndPassword(request.getLogin(), request.getPassword());
         String token = this.jwtTokenProvider.generateAccessToken(user);
         return new ResponseEntity<>(new AuthResponseDTO(user.getLogin(), token), HttpStatus.OK);

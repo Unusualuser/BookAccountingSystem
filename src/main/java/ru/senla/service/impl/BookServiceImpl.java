@@ -16,10 +16,10 @@ import java.util.List;
 @Service
 public class BookServiceImpl implements BookService {
     private final static Logger LOGGER = Logger.getLogger(BookServiceImpl.class);
-    private final BookRepository bookRepository;
-    private final BookHistoryRepository bookHistoryRepository;
-    private final BookStorageRepository bookStorageRepository;
-    private final RequestRepository requestRepository;
+    private BookRepository bookRepository;
+    private BookHistoryRepository bookHistoryRepository;
+    private BookStorageRepository bookStorageRepository;
+    private RequestRepository requestRepository;
 
     public BookServiceImpl(BookRepository bookRepository, BookHistoryRepository bookHistoryRepository, BookStorageRepository bookStorageRepository, RequestRepository requestRepository) {
         this.bookRepository = bookRepository;
@@ -32,10 +32,11 @@ public class BookServiceImpl implements BookService {
     public void saveBook(Book book) {
         try {
             this.bookRepository.saveBook(book);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при сохранении книги.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
-            LOGGER.debug(String.format("Книга: %s.", book.toString()));
+            if (book != null)
+                LOGGER.debug(String.format("Книга: %s.", book.toString()));
             throw new BookServiceOperationException(errorMessage, e);
         }
     }
@@ -53,7 +54,7 @@ public class BookServiceImpl implements BookService {
                 book.setAuthor(author);
             if (description != null)
                 book.setDescription(description);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при обнновлении информации о книге.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Id книги: %d, новое название: %s, новый год публикации: %d, новый автор: %s, новое описание: %s.",
@@ -69,7 +70,7 @@ public class BookServiceImpl implements BookService {
             this.bookStorageRepository.deleteBookStoragesByBookId(id);
             this.requestRepository.deleteRequestsByBookId(id);
             this.bookRepository.deleteBookById(id);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при удалении книги.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Id книги: %d.", id));
@@ -81,7 +82,7 @@ public class BookServiceImpl implements BookService {
     public Book getBookById(Long id) {
         try {
             return this.bookRepository.getBookById(id);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при получении книги.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Id книги: %d.", id));
@@ -93,7 +94,7 @@ public class BookServiceImpl implements BookService {
     public List<Book> getAllBooks() {
         try {
             return this.bookRepository.getAllBooks();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при получении всех книг.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             throw new BookServiceOperationException(errorMessage, e);

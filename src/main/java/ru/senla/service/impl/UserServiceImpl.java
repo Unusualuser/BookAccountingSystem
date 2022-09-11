@@ -14,7 +14,7 @@ import ru.senla.service.UserService;
 @Service
 public class UserServiceImpl implements UserService {
     private final static Logger LOGGER = Logger.getLogger(UserServiceImpl.class);
-    private final UserRepository userRepository;
+    private UserRepository userRepository;
     @Lazy
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -28,10 +28,11 @@ public class UserServiceImpl implements UserService {
         try {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             this.userRepository.saveUser(user);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при сохранении пользователя.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
-            LOGGER.debug(String.format("Пользователь: %s.", user.toString()));
+            if (user != null)
+                LOGGER.debug(String.format("Пользователь: %s.", user.toString()));
             throw new UserServiceOperationException(errorMessage, e);
         }
     }
@@ -49,7 +50,7 @@ public class UserServiceImpl implements UserService {
                 user.setAddress(address);
             if (phoneNumber != null)
                 user.setPhoneNumber(phoneNumber);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при обновлении личной информации пользователя.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Логин пользователя: %s, новый email: %s, новое имя: %s, новый адрес: %s, новый номер телефона: %s.",
@@ -62,7 +63,7 @@ public class UserServiceImpl implements UserService {
     public User getUserById(Long id) {
         try {
             return this.userRepository.getUserById(id);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при получения пользователя по id.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Id пользователя: %d.", id));
@@ -74,7 +75,7 @@ public class UserServiceImpl implements UserService {
     public User getUserByLogin(String login) {
         try {
             return this.userRepository.getUserByLogin(login);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             String errorMessage = "Ошибка при получения пользователя по логину.";
             LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
             LOGGER.debug(String.format("Логин пользователя: %s.", login));

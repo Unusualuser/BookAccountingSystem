@@ -17,6 +17,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.validation.constraints.Min;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -28,6 +29,7 @@ public class Request implements Serializable {
     @SequenceGenerator(name = "request_seq", sequenceName = "request_request_id_seq", allocationSize = 0)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "request_seq")
     @Column(name = "request_id", nullable = false)
+    @Min(value = 0L, message = "Значение id должно быть положительным")
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)

@@ -1,5 +1,6 @@
 package ru.senla.model;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import org.hibernate.Hibernate;
@@ -32,14 +33,15 @@ public class User extends Person implements Serializable, UserDetails {
     @SequenceGenerator(name = "user_seq", sequenceName = "user_user_id_seq", allocationSize = 0)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
     @Column(name = "user_id", nullable = false)
+    @Min(value = 0L, message = "Значение id должно быть положительным")
     private Long id;
 
     @Column(name = "login", nullable = false, unique = true)
-    @Size(min = 4, max = 30, message = "Не меньше 4 и не больше 30 символов")
+    @Size(min = 4, max = 30, message = "Логин должен быть не меньше 4 и не больше 30 символов")
     private String login;
 
     @Column(name = "password", nullable = false)
-    @Size(min = 4, message = "Не меньше 4 символов")
+    @Size(min = 4, message = "Пароль должен быть не меньше 4 символов")
     private String password;
 
     @Column(name = "role", nullable = false)
@@ -47,7 +49,7 @@ public class User extends Person implements Serializable, UserDetails {
     private UserRole role;
 
     @Column(name = "email")
-    @Size(max = 255, message = "Не больше 255 символов")
+    @Size(max = 255, message = "Email должен быть не больше 255 символов")
     @Pattern(regexp = "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", flags = Pattern.Flag.CASE_INSENSITIVE, message = "Email должен быть корректен")
     private String email;
 

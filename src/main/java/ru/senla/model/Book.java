@@ -1,5 +1,6 @@
 package ru.senla.model;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxy;
@@ -21,21 +22,23 @@ public class Book implements Serializable {
     @SequenceGenerator(name = "book_seq", sequenceName = "book_book_id_seq", allocationSize = 0)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "book_seq")
     @Column(name = "book_id", nullable = false)
+    @Min(value = 0L, message = "Значение id должно быть положительным")
     private Long id;
 
     @Column(name = "name", nullable = false)
-    @Size(min = 4, max = 30, message = "Не меньше 4 и не больше 30 символов")
+    @Size(min = 3, max = 30, message = "Название должно быть не меньше 3 и не больше 30 символов")
     private String name;
 
     @Column(name = "publication_year", nullable = false)
+    @Min(value = 0, message = "Год публикации должен быть положительным")
     private Integer publicationYear;
 
     @Column(name = "author", nullable = false)
-    @Size(min = 4, max = 100, message = "Не меньше 4 и не больше 100 символов")
+    @Size(min = 4, max = 100, message = "Имя автора должно быть не меньше 4 и не больше 100 символов")
     private String author;
 
     @Column(name = "description")
-    @Size(max = 70, message = "Не больше 70 символов")
+    @Size(max = 70, message = "Описание должно быть не больше 70 символов")
     private String description;
 
     public Book() {

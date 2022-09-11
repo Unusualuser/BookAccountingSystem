@@ -1,9 +1,15 @@
 package ru.senla.dto;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 
 public class AuthRequestDTO implements Serializable {
+    @NotNull
+    @Size(min = 4, max = 30, message = "Логин должен быть не меньше 4 и не больше 30 символов")
     private String login;
+    @NotNull
+    @Size(min = 4, message = "Пароль должен быть не меньше 4 символов")
     private String password;
 
     public AuthRequestDTO() {

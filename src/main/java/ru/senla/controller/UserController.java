@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,7 +16,11 @@ import ru.senla.dto.UserDTO;
 import ru.senla.model.User;
 import ru.senla.service.UserService;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+
 @RestController
+@Validated
 public class UserController {
     private final UserService userService;
 
@@ -24,7 +29,10 @@ public class UserController {
     }
 
     @PatchMapping("/user/update-personal-info")
-    public ResponseEntity<?> updateUserPersonalInfo(@RequestBody UpdateUserPersonalInfoRequestDTO updateUserPersonalInfoRequestDTO, Authentication authentication) {
+    public ResponseEntity<?> updateUserPersonalInfo(@Valid
+                                                    @RequestBody
+                                                    UpdateUserPersonalInfoRequestDTO updateUserPersonalInfoRequestDTO,
+                                                    Authentication authentication) {
         String userLogin = authentication.getName();
         this.userService.updateUserPersonalInfo(
                                                 userLogin,
@@ -43,7 +51,9 @@ public class UserController {
 
     @Transactional
     @GetMapping("/moder/user/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+    public ResponseEntity<?> getUserById(@Min(value = 0L, message = "Значение id должно быть положительным")
+                                         @PathVariable
+                                         Long id) {
         User user = this.userService.getUserById(id);
         return new ResponseEntity<>(new UserDTO(
                                                 user.getId(),

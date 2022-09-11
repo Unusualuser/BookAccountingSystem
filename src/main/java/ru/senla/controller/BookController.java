@@ -3,6 +3,7 @@ package ru.senla.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -17,10 +18,13 @@ import ru.senla.dto.UpdateBookInfoDTO;
 import ru.senla.model.Book;
 import ru.senla.service.BookService;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
+@Validated
 public class BookController {
     private final BookService bookService;
 
@@ -29,7 +33,7 @@ public class BookController {
     }
 
     @PostMapping("/moder/book")
-    public ResponseEntity<?> saveBook(@RequestBody SaveBookDTO saveBookDTO) {
+    public ResponseEntity<?> saveBook(@Valid @RequestBody SaveBookDTO saveBookDTO) {
         Book book = new Book(saveBookDTO.getName(),
                              saveBookDTO.getPublicationYear(),
                              saveBookDTO.getAuthor(),
@@ -44,7 +48,7 @@ public class BookController {
     }
 
     @PatchMapping("/moder/book")
-    public ResponseEntity<?> updateBookInfo(@RequestBody UpdateBookInfoDTO updateBookInfoDTO) {
+    public ResponseEntity<?> updateBookInfo(@Valid @RequestBody UpdateBookInfoDTO updateBookInfoDTO) {
         this.bookService.updateBookInfo(updateBookInfoDTO.getId(),
                                         updateBookInfoDTO.getName(),
                                         updateBookInfoDTO.getPublicationYear(),
@@ -59,14 +63,18 @@ public class BookController {
     }
 
     @DeleteMapping("/moder/book/{id}")
-    public ResponseEntity<?> deleteBookById(@PathVariable Long id) {
+    public ResponseEntity<?> deleteBookById(@Min(value = 0L, message = "Значение id должно быть положительным")
+                                            @PathVariable
+                                            Long id) {
         this.bookService.deleteBookById(id);
         return new ResponseEntity<>(new IdDTO(id), HttpStatus.OK);
     }
 
     @Transactional
     @GetMapping("/book/{id}")
-    public ResponseEntity<?> getBookById(@PathVariable Long id) {
+    public ResponseEntity<?> getBookById(@Min(value = 0L, message = "Значение id должно быть положительным")
+                                         @PathVariable
+                                         Long id) {
         Book book = this.bookService.getBookById(id);
         return new ResponseEntity<>(new BookDTO(book.getId(),
                                                 book.getName(),

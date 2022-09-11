@@ -10,11 +10,11 @@ import java.io.Serializable;
 @MappedSuperclass
 public abstract class Person implements Serializable {
     @Column(name = "name")
-    @Size(min = 4, max = 100, message = "Не меньше 4 и не больше 100 символов")
+    @Size(min = 4, max = 100, message = "Имя должно быть не меньше 4 и не больше 100 символов")
     protected String name;
 
     @Column(name = "address")
-    @Size(max = 70, message = "Не больше 70 символов")
+    @Size(max = 70, message = "Адрес должен быть не больше 70 символов")
     protected String address;
 
     @Column(name = "phone_number")

@@ -1,11 +1,21 @@
 package ru.senla.dto;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 
 public class SaveBookDTO implements Serializable {
+    @NotNull
+    @Size(min = 3, max = 30, message = "Название должно быть не меньше 3 и не больше 30 символов")
     private String name;
+    @NotNull
+    @Min(value = 0, message = "Год публикации должен быть положительным")
     private Integer publicationYear;
+    @NotNull
+    @Size(min = 4, max = 100, message = "Имя автора должно быть не меньше 4 и не больше 100 символов")
     private String author;
+    @Size(max = 70, message = "Описание должно быть не больше 70 символов")
     private String description;
 
     public SaveBookDTO() {

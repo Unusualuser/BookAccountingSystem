@@ -4,6 +4,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,11 +16,13 @@ import ru.senla.dto.ReturnRentedBookResponseDTO;
 import ru.senla.model.BookHistory;
 import ru.senla.service.BookHistoryService;
 
+import javax.validation.constraints.Min;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
+@Validated
 public class BookHistoryController {
     private final BookHistoryService bookHistoryService;
 
@@ -28,19 +31,26 @@ public class BookHistoryController {
     }
 
     @PostMapping("/rent-book")
-    public ResponseEntity<?> rentBook(@RequestParam Long bookId, Authentication authentication) {
+    public ResponseEntity<?> rentBook(@Min(value = 0L, message = "Значение bookId должно быть положительным")
+                                      @RequestParam
+                                      Long bookId,
+                                      Authentication authentication) {
         this.bookHistoryService.rentBook(bookId, authentication.getName());
         return new ResponseEntity<>(new RentBookResponseDTO(bookId), HttpStatus.OK);
     }
 
     @PatchMapping("/moder/return-rented-book")
-    public ResponseEntity<?> returnRentedBook(@RequestParam Long bookHistoryId) {
+    public ResponseEntity<?> returnRentedBook(@Min(value = 0L, message = "Значение bookHistoryId должно быть положительным")
+                                              @RequestParam
+                                              Long bookHistoryId) {
         this.bookHistoryService.returnRentedBook(bookHistoryId);
         return new ResponseEntity<>(new ReturnRentedBookResponseDTO(bookHistoryId), HttpStatus.OK);
     }
 
     @GetMapping("/moder/full-book-history-by-book-id")
-    public ResponseEntity<?> getFullBookHistoryByBookId(@RequestParam Long bookId) {
+    public ResponseEntity<?> getFullBookHistoryByBookId(@Min(value = 0L, message = "Значение bookId должно быть положительным")
+                                                        @RequestParam
+                                                        Long bookId) {
         List<BookHistory> fullBookHistory = this.bookHistoryService.getFullBookHistoryByBookId(bookId);
         List<BookHistoryDTO> fullBookHistoryDTO = fullBookHistory.stream()
              .map(bookHistory -> new BookHistoryDTO(
@@ -55,9 +65,15 @@ public class BookHistoryController {
     }
 
     @GetMapping("/moder/book-histories-by-book-id-for-period")
-    public ResponseEntity<?> getBookHistoriesByBookIdForPeriod(@RequestParam Long bookId,
-                                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate beginDate,
-                                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+    public ResponseEntity<?> getBookHistoriesByBookIdForPeriod(@Min(value = 0L, message = "Значение bookId должно быть положительным")
+                                                               @RequestParam
+                                                               Long bookId,
+                                                               @RequestParam
+                                                               @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                                                               LocalDate beginDate,
+                                                               @RequestParam
+                                                               @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                                                               LocalDate endDate) {
         List<BookHistory> bookHistories = this.bookHistoryService.getBookHistoriesByBookIdForPeriod(bookId,
                                                                                                     beginDate,
                                                                                                     endDate);
