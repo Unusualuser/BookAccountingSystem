@@ -1,7 +1,6 @@
 package ru.senla.service.impl;
 
 import org.apache.log4j.Logger;
-import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
