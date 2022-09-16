@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.senla.exception.UserAlreadyExistException;
+import ru.senla.exception.UserNotFoundException;
 import ru.senla.model.User;
 import ru.senla.model.fieldenum.UserRole;
 import ru.senla.repository.UserRepository;
@@ -17,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,37 +44,41 @@ class UserServiceImplTest {
 
     @DisplayName("JUnit positive test for UserServiceImplTest registerUser method")
     @Test
-    void givenUser_whenRegisterUserInvoked_thenCheckContainsUserAndRepoSaveUserMethodCalledPasswordEncoded() {
+    void givenUser_whenRegisterUserInvoked_thenRepoContainsByLoginAndRepoSaveUserMethodCalledPasswordEncoded() {
         // arrange
-        String oldUserPassword = user.getPassword();
+        User userToRegister = user;
+        String userLogin = user.getLogin();
+        String oldUserPassword = userToRegister.getPassword();
 
-        when(userRepository.containsByLogin(user.getLogin())).thenReturn(false);
+        when(userRepository.containsByLogin(userLogin)).thenReturn(false);
 
         // act
-        userService.registerUser(user);
+        userService.registerUser(userToRegister);
 
         // assert
-        assertNotEquals(oldUserPassword, user.getPassword());
+        verify(userRepository, times(1)).containsByLogin(userLogin);
+        assertNotEquals(oldUserPassword, userToRegister.getPassword());
         verify(passwordEncoder, times(1)).encode(oldUserPassword);
-        verify(userRepository, times(1)).saveUser(user);
+        verify(userRepository, times(1)).saveUser(userToRegister);
     }
 
-//    @DisplayName("JUnit negative test for UserServiceImplTest registerUser method")
-//    @Test
-//    void givenInvalidUser_whenRegisterUserInvoked_thenUserAlreadyExistExceptionThrown() {
-//        // arrange
-//        when(userRepository.containsByLogin(user.getLogin())).thenReturn(true);
-//
-//        // act and assert
-//        assertThrows(UserAlreadyExistException.class, () -> userService.registerUser(user));
-//    }
+    @DisplayName("JUnit negative test for UserServiceImplTest registerUser method")
+    @Test
+    void givenExistingUser_whenRegisterUserInvoked_thenUserAlreadyExistExceptionThrown() {
+        // arrange
+        User existingUser = invalidUser;
+
+        when(userRepository.containsByLogin(existingUser.getLogin())).thenReturn(true);
+
+        // act and assert
+        assertThrows(UserAlreadyExistException.class, () -> userService.registerUser(existingUser));
+    }
 
     @DisplayName("JUnit positive test for UserServiceImplTest updateUserPersonalInfo method")
     @Test
     void givenUserPersonalInfoToUpdate_whenUpdateUserPersonalInfoInvoked_thenUserPersonalInfoUpdated() {
         // arrange
-        User oldUser = new User(
-                                user.getName(),
+        User oldUser = new User(user.getName(),
                                 user.getAddress(),
                                 user.getPhoneNumber(),
                                 user.getId(),
@@ -87,6 +91,7 @@ class UserServiceImplTest {
         String newName = "newName";
         String newAddress = "newAdress";
         String newPhoneNumber = "newPhoneNumber";
+
         when(userRepository.getUserByLogin(userLogin)).thenReturn(user);
 
         // act
@@ -104,32 +109,25 @@ class UserServiceImplTest {
         assertNotEquals(oldUser.getPhoneNumber(), user.getPhoneNumber());
     }
 
-//    @DisplayName("JUnit negative test for UserServiceImplTest updateUserPersonalInfo method")
-//    @Test
-//    void givenNonexistentUserLogin_whenUpdateUserPersonalInfoInvoked_thenUserServiceOperationExceptionThrown() {
-//        // arrange
-//        String nonexistentUserLogin = invalidUser.getLogin();
-//        String newEmail = "newEmail";
-//        String newName = "newName";
-//        String newAddress = "newAddress";
-//        String newPhoneNumber = "newPhoneNumber";
-//        doThrow(ObjectNotFoundException.class).when(userRepository).getUserByLogin(nonexistentUserLogin);
-//
-//        // act and assert
-//        assertThrows(UserServiceOperationException.class,
-//                () -> userService.updateUserPersonalInfo(nonexistentUserLogin,
-//                                                         newEmail,
-//                                                         newName,
-//                                                         newAddress,
-//                                                         newPhoneNumber));
-//        verify(userRepository, times(1)).getUserByLogin(nonexistentUserLogin);
-//    }
+    @DisplayName("JUnit negative test for UserServiceImplTest updateUserPersonalInfo method")
+    @Test
+    void givenNonexistentUserLoginAndUserPersonalInfo_whenUpdateUserPersonalInfoInvoked_thenUserNotFoundExceptionThrown() {
+        // arrange
+        String nonexistentUserLogin = invalidUser.getLogin();
+
+        doThrow(UserNotFoundException.class).when(userRepository).getUserByLogin(nonexistentUserLogin);
+
+        // act and assert
+        assertThrows(UserNotFoundException.class, () -> userService.updateUserPersonalInfo(nonexistentUserLogin, null, null, null, null));
+        verify(userRepository, times(1)).getUserByLogin(nonexistentUserLogin);
+    }
 
     @DisplayName("JUnit positive test for UserServiceImplTest getUserById method")
     @Test
     void givenUserId_whenGetUserByIdInvoked_thenUserReturnedAndRepoGetUserByIdMethodCalled() {
         // arrange
         Long userId = user.getId();
+
         when(userRepository.getUserById(anyLong())).thenReturn(user);
 
         // act
@@ -146,70 +144,71 @@ class UserServiceImplTest {
         verify(userRepository, times(1)).getUserById(userId);
     }
 
-//    @DisplayName("JUnit negative test for UserServiceImplTest getUserById method")
-//    @Test
-//    void givenInvalidUserId_whenGetUserByIdInvoked_thenUserServiceOperationExceptionThrown() {
-//        // arrange
-//        Long invalidUserId = invalidUser.getId();
-//        doThrow(ObjectNotFoundException.class).when(userRepository).getUserById(argThat(argLong -> argLong < 0));
-//
-//        // act and assert
-//        assertThrows(UserServiceOperationException.class, () -> userService.getUserById(invalidUserId));
-//    }
+    @DisplayName("JUnit negative test for UserServiceImplTest getUserById method")
+    @Test
+    void givenNonexistentUserId_whenGetUserByIdInvoked_thenUserNotFoundExceptionThrown() {
+        // arrange
+        Long nonexistentUserId = invalidUser.getId();
+
+        doThrow(UserNotFoundException.class).when(userRepository).getUserById(nonexistentUserId);
+
+        // act and assert
+        assertThrows(UserNotFoundException.class, () -> userService.getUserById(nonexistentUserId));
+    }
 
     @DisplayName("JUnit positive test for UserServiceImplTest getUserByLogin method")
     @Test
-    void givenUserLogin_whenGetUserByLoginInvoked_thenUserReturnedAndRepoGetUserByLoginMethodCalled() {
+    void givenUserLogin_whenGetUserByLoginInvoked_thenRepoGetUserByLoginMethodCalled() {
         // arrange
         String userLogin = user.getLogin();
-        when(userRepository.getUserByLogin(userLogin)).thenReturn(user);
 
         // act
-        User obtainedUser = userService.getUserByLogin(userLogin);
+        userService.getUserByLogin(userLogin);
 
         // assert
-        assertEquals(user, obtainedUser);
         verify(userRepository, times(1)).getUserByLogin(userLogin);
     }
 
-//    @DisplayName("JUnit negative test for UserServiceImplTest getUserByLogin method")
-//    @Test
-//    void givenNonexistentUserLogin_whenGetUserByLoginInvoked_thenUserServiceOperationExceptionThrown() {
-//        // arrange
-//        String nonexistentUserLogin = invalidUser.getLogin();
-//        doThrow(ObjectNotFoundException.class).when(userRepository).getUserByLogin(argThat(argString -> argString.equals("")));
-//
-//        // act and assert
-//        assertThrows(UserServiceOperationException.class, () -> userService.getUserByLogin(nonexistentUserLogin));
-//    }
+    @DisplayName("JUnit negative test for UserServiceImplTest getUserByLogin method")
+    @Test
+    void givenNonexistentUserLogin_whenGetUserByLoginInvoked_thenUserNotFoundExceptionThrown() {
+        // arrange
+        String nonexistentUserLogin = invalidUser.getLogin();
+
+        doThrow(UserNotFoundException.class).when(userRepository).getUserByLogin(nonexistentUserLogin);
+
+        // act and assert
+        assertThrows(UserNotFoundException.class, () -> userService.getUserByLogin(nonexistentUserLogin));
+    }
 
     @DisplayName("JUnit positive test for UserServiceImplTest getUserByLoginAndPassword method")
     @Test
-    void givenUserLoginAndPassword_whenGetUserByLoginAndPasswordInvoked_thenUserReturnedAndRepoGetUserByLoginMethodCalled() {
+    void givenUserLoginAndPassword_whenGetUserByLoginAndPasswordInvoked_thenRepoGetUserByLoginMethodCalled() {
         // arrange
         String userLogin = user.getLogin();
         String userPassword = user.getPassword();
+
         when(userRepository.getUserByLogin(userLogin)).thenReturn(user);
-        doReturn(true).when(passwordEncoder).matches(userPassword, userPassword);
+        when(passwordEncoder.matches(userPassword, userPassword)).thenReturn(true);
 
         // act
-        User obtainedUser = userService.getUserByLoginAndPassword(userLogin, userPassword);
+        userService.getUserByLoginAndPassword(userLogin, userPassword);
 
         // assert
-        assertEquals(user, obtainedUser);
         verify(userRepository, times(1)).getUserByLogin(userLogin);
         verify(passwordEncoder, times(1)).matches(userPassword, userPassword);
     }
 
-//    @DisplayName("JUnit negative test for UserServiceImplTest getUserByLoginAndPassword method")
-//    @Test
-//    void givenInvalidUserLoginAndPassword_whenGetUserByLoginAndPasswordInvoked_thenServiceOperationExceptionThrown() {
-//        // arrange
-//        String invalidUserLogin = invalidUser.getLogin();
-//        String invalidUserPassword = invalidUser.getPassword();
-//        doThrow(ObjectNotFoundException.class).when(userRepository).getUserByLogin(argThat(argString -> argString.equals("")));
-//
-//        // act and assert
-//        assertThrows(UserServiceOperationException.class, () -> userService.getUserByLoginAndPassword(invalidUserLogin, invalidUserPassword));
-//    }
+    @DisplayName("JUnit negative test for UserServiceImplTest getUserByLoginAndPassword method")
+    @Test
+    void givenInvalidUserLoginAndPassword_whenGetUserByLoginAndPasswordInvoked_thenUserNotFoundExceptionThrown() {
+        // arrange
+        String nonexistentUserLogin = invalidUser.getLogin();
+        String invalidUserPassword = invalidUser.getPassword();
+
+        doThrow(UserNotFoundException.class).when(userRepository).getUserByLogin(nonexistentUserLogin);
+
+        // act and assert
+        assertThrows(UserNotFoundException.class, () -> userService.getUserByLoginAndPassword(nonexistentUserLogin, invalidUserPassword));
+    }
 }

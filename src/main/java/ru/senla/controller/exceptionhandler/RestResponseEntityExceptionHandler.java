@@ -1,5 +1,6 @@
 package ru.senla.controller.exceptionhandler;
 
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +11,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import ru.senla.exception.BookAvailableException;
 import ru.senla.exception.BookHistoryNotFoundException;
+import ru.senla.exception.BookHistoryRentAlreadyCompleted;
 import ru.senla.exception.BookNotFoundException;
 import ru.senla.exception.BookStorageIllegalReduceQuantityException;
 import ru.senla.exception.BookStorageNotFoundException;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
+    private final static Logger LOGGER = Logger.getLogger(RestResponseEntityExceptionHandler.class);
 
     private ResponseEntity<Object> handleErrorMessage(Exception e,
                                                       WebRequest request,
@@ -73,15 +77,11 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         return handleErrorMessage(e, request, errorMessage, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(value = {BookStorageIllegalReduceQuantityException.class})
-    protected ResponseEntity<Object> handleBookStorageIllegalReduceQuantityException(BookStorageIllegalReduceQuantityException e, WebRequest request) {
-        String errorMessage = e.getMessage();
-
-        return handleErrorMessage(e, request, errorMessage, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(value = {UserAlreadyExistException.class})
-    protected ResponseEntity<Object> handleUserAlreadyExistException(UserAlreadyExistException e, WebRequest request) {
+    @ExceptionHandler(value = {BookStorageIllegalReduceQuantityException.class,
+                               UserAlreadyExistException.class,
+                               BookAvailableException.class,
+                               BookHistoryRentAlreadyCompleted.class})
+    protected ResponseEntity<Object> handleBadRequestExceptions(RuntimeException e, WebRequest request) {
         String errorMessage = e.getMessage();
 
         return handleErrorMessage(e, request, errorMessage, HttpStatus.BAD_REQUEST);
@@ -91,6 +91,8 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     protected ResponseEntity<Object> handleInternalExceptions(RuntimeException e,
                                                               WebRequest request) {
         String errorMessage = "Внутренняя ошибка.";
+
+        LOGGER.debug(String.format("%s %s", errorMessage, e.getMessage()), e);
 
         return handleErrorMessage(e, request, errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }

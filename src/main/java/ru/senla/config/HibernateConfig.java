@@ -25,8 +25,6 @@ public class HibernateConfig {
     private String hibernateDatabasePassword;
     @Value("${hibernate.dialect}")
     private String hibernateDialect;
-    @Value("${hibernate.hbm2ddl.auto}")
-    private String hibernateHbm2ddlAuto;
 
     @Bean
     public LocalSessionFactoryBean sessionFactory() {
@@ -60,7 +58,6 @@ public class HibernateConfig {
     private Properties hibernateProperties() {
         Properties hibernateProperties = new Properties();
         hibernateProperties.setProperty("hibernate.dialect", hibernateDialect);
-        hibernateProperties.setProperty("hibernate.hbm2ddl.auto", hibernateHbm2ddlAuto);
 
         return hibernateProperties;
     }

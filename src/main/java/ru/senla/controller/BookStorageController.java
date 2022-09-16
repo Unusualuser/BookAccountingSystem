@@ -61,7 +61,7 @@ public class BookStorageController {
 
     @GetMapping("/quantity-by-book-id/{bookId}")
     @ApiOperation(value = "Метод для получения количества книг в хранилище по id книги")
-    public ResponseEntity<?> getQuantityByBookId(@ApiParam(value = "Идентификатор книги", required = true)
+    public ResponseEntity<?> getQuantityByBookId(@ApiParam(value = "Идентификатор книги", example = "1", required = true)
                                                  @Min(value = 0L, message = "Значение bookId должно быть положительным")
                                                  @PathVariable
                                                  Long bookId) {

@@ -37,7 +37,7 @@ public class BookHistoryController {
 
     @PostMapping("/rent-book")
     @ApiOperation(value = "Метод для аренды книги текущим пользователем по id книги")
-    public ResponseEntity<?> rentBook(@ApiParam(value = "Идентификатор книги", required = true)
+    public ResponseEntity<?> rentBook(@ApiParam(value = "Идентификатор книги", example = "1", required = true)
                                       @Min(value = 0L, message = "Значение bookId должно быть положительным")
                                       @RequestParam
                                       Long bookId,
@@ -49,7 +49,7 @@ public class BookHistoryController {
 
     @PatchMapping("/moder/return-rented-book")
     @ApiOperation(value = "Метод для закрытия аренды книги по id истории книги")
-    public ResponseEntity<?> returnRentedBook(@ApiParam(value = "Идентификатор истории книги", required = true)
+    public ResponseEntity<?> returnRentedBook(@ApiParam(value = "Идентификатор истории книги", example = "1", required = true)
                                               @Min(value = 0L, message = "Значение bookHistoryId должно быть положительным")
                                               @RequestParam
                                               Long bookHistoryId) {
@@ -60,7 +60,7 @@ public class BookHistoryController {
 
     @GetMapping("/moder/full-book-history-by-book-id")
     @ApiOperation(value = "Метод для получения всей истории аренды книги по id книги")
-    public ResponseEntity<?> getFullBookHistoryByBookId(@ApiParam(value = "Идентификатор книги", required = true)
+    public ResponseEntity<?> getFullBookHistoryByBookId(@ApiParam(value = "Идентификатор книги", example = "1", required = true)
                                                         @Min(value = 0L, message = "Значение bookId должно быть положительным")
                                                         @RequestParam
                                                         Long bookId) {
@@ -80,15 +80,15 @@ public class BookHistoryController {
 
     @GetMapping("/moder/book-histories-by-book-id-for-period")
     @ApiOperation(value = "Метод для получения истории аренды книги по id книги за период времени")
-    public ResponseEntity<?> getBookHistoriesByBookIdForPeriod(@ApiParam(value = "Идентификатор книги", required = true)
+    public ResponseEntity<?> getBookHistoriesByBookIdForPeriod(@ApiParam(value = "Идентификатор книги", example = "1", required = true)
                                                                @Min(value = 0L, message = "Значение bookId должно быть положительным")
                                                                @RequestParam
                                                                Long bookId,
-                                                               @ApiParam(value = "Дата начала периода", required = true)
+                                                               @ApiParam(value = "Дата начала периода", example = "2022-07-30", required = true)
                                                                @RequestParam
                                                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                                                                LocalDate beginDate,
-                                                               @ApiParam(value = "Дата конца периода", required = true)
+                                                               @ApiParam(value = "Дата конца периода", example = "2022-09-30", required = true)
                                                                @RequestParam
                                                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                                                                LocalDate endDate) {

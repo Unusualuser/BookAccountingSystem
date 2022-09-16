@@ -37,4 +37,4 @@ INSERT INTO public.book_history(book_history_id, book_id, user_id, rental_date, 
 
 -- insert into "request"
 INSERT INTO public.request(request_id, book_id, user_id, create_dttm, request_status) VALUES
-    (nextval('request_request_id_seq'), 4, 2, now(), 'NEW');
+    (nextval('request_request_id_seq'), 4, 1, now(), 'NEW');

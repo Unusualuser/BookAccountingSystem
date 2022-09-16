@@ -32,9 +32,6 @@ CREATE TABLE book_storage
 );
 
 ALTER TABLE book_storage
-    ADD CONSTRAINT uc_book_storage_book UNIQUE (book_id);
-
-ALTER TABLE book_storage
     ADD CONSTRAINT FK_BOOK_STORAGE_ON_BOOK FOREIGN KEY (book_id) REFERENCES public.book (book_id);
 
 

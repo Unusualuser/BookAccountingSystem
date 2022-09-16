@@ -77,7 +77,7 @@ public class BookController {
 
     @DeleteMapping("/moder/book/{id}")
     @ApiOperation(value = "Метод для удаления книги по id")
-    public ResponseEntity<?> deleteBookById(@ApiParam(value = "Идентификатор книги", required = true)
+    public ResponseEntity<?> deleteBookById(@ApiParam(value = "Идентификатор книги", example = "1", required = true)
                                             @Min(value = 0L, message = "Значение id должно быть положительным")
                                             @PathVariable
                                             Long id) {
@@ -88,7 +88,7 @@ public class BookController {
 
     @GetMapping("/book/{id}")
     @ApiOperation(value = "Метод для получения книги по id")
-    public ResponseEntity<?> getBookById(@ApiParam(value = "Идентификатор книги", required = true)
+    public ResponseEntity<?> getBookById(@ApiParam(value = "Идентификатор книги", example = "1", required = true)
                                          @Min(value = 0L, message = "Значение id должно быть положительным")
                                          @PathVariable
                                          Long id) {

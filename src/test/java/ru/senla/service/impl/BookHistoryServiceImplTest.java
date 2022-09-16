@@ -1,6 +1,6 @@
 package ru.senla.service.impl;
 
-import org.hibernate.ObjectNotFoundException;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,7 +9,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.senla.exception.BookHistoryServiceOperationException;
+import ru.senla.exception.BookHistoryNotFoundException;
 import ru.senla.exception.BookNotFoundException;
 import ru.senla.model.Book;
 import ru.senla.model.BookHistory;
@@ -24,8 +24,6 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -45,6 +43,7 @@ class BookHistoryServiceImplTest {
     private BookHistoryServiceImpl bookHistoryService;
     private BookHistory bookHistory;
     private BookHistory invalidBookHistory;
+    private final Long invalidBookIdForTest = -1L;
 
     @BeforeEach
     public void init() {
@@ -70,7 +69,7 @@ class BookHistoryServiceImplTest {
 
     @DisplayName("JUnit positive test for BookHistoryServiceImplTest rentBook method")
     @Test
-    void givenBookIdAndUserLogin_whenRentBookInvoked_thenServicesMethodsAndRepoSaveBookHistoryCalledReturnDeadlineSet() {
+    void givenBookIdAndUserLogin_whenRentBookInvoked_thenServicesMethodsAndRepoSaveBookHistoryCalledRentalDateAndReturnDeadlineSet() {
         // arrange
         Book book = bookHistory.getBook();
         User user = bookHistory.getUser();
@@ -88,25 +87,26 @@ class BookHistoryServiceImplTest {
         bookHistoryService.rentBook(bookId, userLogin);
 
         // assert
-        verify(bookStorageService, times(1)).decrementQuantityByBookId(bookId);
         verify(bookService, times(1)).getBookById(bookId);
         verify(userService, times(1)).getUserByLogin(userLogin);
+        verify(bookStorageService, times(1)).decrementQuantityByBookId(bookId);
         verify(bookHistoryRepository, times(1)).saveBookHistory(captor.capture());
         assertEquals(captor.getValue().getReturnDeadlineDate(), LocalDate.now().plusMonths(bookRentDurationInMonth));
+        Assertions.assertEquals(captor.getValue().getRentalDate(), LocalDate.now());
     }
 
-//    @DisplayName("JUnit negative test for BookHistoryServiceImplTest rentBook method")
-//    @Test
-//    void givenInvalidBookId_whenRentBookInvoked_thenBookHistoryServiceOperationExceptionThrown() {
-//        // arrange
-//        Long invalidBookId = -1L;
-//        String userLogin = "login";
-//
-//        doThrow(ObjectNotFoundException.class).when(bookService).getBookById(invalidBookId);
-//
-//        // act and assert
-//        assertThrows(BookHistoryServiceOperationException.class, () -> bookHistoryService.rentBook(invalidBookId, userLogin));
-//    }
+    @DisplayName("JUnit negative test for BookHistoryServiceImplTest rentBook method")
+    @Test
+    void givenNonexistentBookId_whenRentBookInvoked_thenBookNotFoundExceptionThrown() {
+        // arrange
+        Long nonexistentBookId = invalidBookIdForTest;
+        String userLogin = "login";
+
+        doThrow(BookNotFoundException.class).when(bookService).getBookById(nonexistentBookId);
+
+        // act and assert
+        assertThrows(BookNotFoundException.class, () -> bookHistoryService.rentBook(nonexistentBookId, userLogin));
+    }
 
     @DisplayName("JUnit positive test for BookHistoryServiceImplTest returnRentedBook method")
     @Test
@@ -115,7 +115,7 @@ class BookHistoryServiceImplTest {
         Long bookHistoryId = bookHistory.getId();
         Long bookId = bookHistory.getBook().getId();
 
-        when(bookHistoryRepository.getBookHistoryById(bookHistoryId)).thenReturn(bookHistory);
+        when(bookHistoryService.getBookHistoryById(bookHistoryId)).thenReturn(bookHistory);
 
         // act
         bookHistoryService.returnRentedBook(bookHistoryId);
@@ -126,21 +126,34 @@ class BookHistoryServiceImplTest {
         assertEquals(bookHistory.getReturnDate(), LocalDate.now());
     }
 
-//    @DisplayName("JUnit negative test for BookHistoryServiceImplTest returnRentedBook method")
-//    @Test
-//    void givenInvalidBookHistoryId_whenReturnRentedBookInvoked_thenBookHistoryServiceOperationExceptionThrown() {
-//        // arrange
-//        Long invalidBookHistoryId = invalidBookHistory.getId();
-//
-//        doThrow(ObjectNotFoundException.class).when(bookHistoryRepository).getBookHistoryById(invalidBookHistoryId);
-//
-//        // act and assert
-//        assertThrows(BookHistoryServiceOperationException.class, () -> bookHistoryService.returnRentedBook(invalidBookHistoryId));
-//    }
+    @DisplayName("JUnit negative test for BookHistoryServiceImplTest returnRentedBook method")
+    @Test
+    void givenNonexistentBookHistoryId_whenReturnRentedBookInvoked_thenBookHistoryNotFoundExceptionThrown() {
+        // arrange
+        Long nonexistentBookHistoryId = invalidBookHistory.getId();
+
+        doThrow(BookHistoryNotFoundException.class).when(bookHistoryRepository).getBookHistoryById(nonexistentBookHistoryId);
+
+        // act and assert
+        assertThrows(BookHistoryNotFoundException.class, () -> bookHistoryService.returnRentedBook(nonexistentBookHistoryId));
+    }
+
+    @DisplayName("JUnit positive test for BookHistoryServiceImplTest deleteBookHistoriesByBookId method")
+    @Test
+    void givenBookId_whenDeleteBookHistoriesByBookIdInvoked_thenRepoDeleteBookHistoriesByBookIdCalled() {
+        // arrange
+        Long bookId = bookHistory.getBook().getId();
+
+        // act
+        bookHistoryService.deleteBookHistoriesByBookId(bookId);
+
+        // assert
+        verify(bookHistoryRepository, times(1)).deleteBookHistoriesByBookId(bookId);
+    }
 
     @DisplayName("JUnit positive test for BookHistoryServiceImplTest getFullBookHistoryByBookId method")
     @Test
-    void givenBookId_whenGetFullBookHistoryByBookIdInvoked_thenServiceBookContainsCheckAndRepoGetFullBookHistoryByBookIdCalled() {
+    void givenBookId_whenGetFullBookHistoryByBookIdInvoked_thenBookServiceGetBookByIdAndRepoGetFullBookHistoryByBookIdCalled() {
         // arrange
         Long bookId = bookHistory.getBook().getId();
 
@@ -148,25 +161,25 @@ class BookHistoryServiceImplTest {
         bookHistoryService.getFullBookHistoryByBookId(bookId);
 
         // assert
-        verify(bookService, times(1)).throwBookNotFoundExceptionIfBookByIdNotContains(eq(bookId), anyString());
+        verify(bookService, times(1)).getBookById(bookId);
         verify(bookHistoryRepository, times(1)).getFullBookHistoryByBookId(bookId);
     }
 
-//    @DisplayName("JUnit negative test for BookHistoryServiceImplTest getFullBookHistoryByBookId method")
-//    @Test
-//    void givenInvalidBookId_whenGetFullBookHistoryByBookIdInvoked_thenBookHistoryServiceOperationExceptionThrown() {
-//        // arrange
-//        Long invalidBookId = -1L;
-//
-//        doThrow(ObjectNotFoundException.class).when(bookHistoryRepository).getFullBookHistoryByBookId(invalidBookId);
-//
-//        // act and assert
-//        assertThrows(BookHistoryServiceOperationException.class, () -> bookHistoryService.getFullBookHistoryByBookId(invalidBookId));
-//    }
+    @DisplayName("JUnit negative test for BookHistoryServiceImplTest getFullBookHistoryByBookId method")
+    @Test
+    void givenNonexistentBookId_whenGetFullBookHistoryByBookIdInvoked_thenBookNotFoundExceptionThrown() {
+        // arrange
+        Long nonexistentBookId = invalidBookIdForTest;
+
+        doThrow(BookNotFoundException.class).when(bookService).getBookById(nonexistentBookId);
+
+        // act and assert
+        assertThrows(BookNotFoundException.class, () -> bookHistoryService.getFullBookHistoryByBookId(nonexistentBookId));
+    }
 
     @DisplayName("JUnit positive test for BookHistoryServiceImplTest getBookHistoriesByBookIdForPeriod method")
     @Test
-    void givenBookIdBeginDateAndEndDate_whenGetBookHistoriesByBookIdForPeriodInvoked_thenServiceBookContainsCheckAndRepoGetBookHistoriesByBookIdForPeriodCalled() {
+    void givenBookIdBeginDateAndEndDate_whenGetBookHistoriesByBookIdForPeriodInvoked_thenBookServiceGetBookByIdAndRepoGetBookHistoriesByBookIdForPeriodCalled() {
         // arrange
         Long bookId = bookHistory.getBook().getId();
         LocalDate beginDate = LocalDate.of(2022, 7, 13);
@@ -176,23 +189,23 @@ class BookHistoryServiceImplTest {
         bookHistoryService.getBookHistoriesByBookIdForPeriod(bookId, beginDate, endDate);
 
         // assert
-        verify(bookService, times(1)).throwBookNotFoundExceptionIfBookByIdNotContains(eq(bookId), anyString());
+        verify(bookService, times(1)).getBookById(bookId);
         verify(bookHistoryRepository, times(1)).getBookHistoriesByBookIdForPeriod(bookId, beginDate, endDate);
     }
 
-//    @DisplayName("JUnit negative test for BookHistoryServiceImplTest getBookHistoriesByBookIdForPeriod method")
-//    @Test
-//    void givenInvalidBookIdBeginDateAndEndDate_whenGetBookHistoriesByBookIdForPeriodInvoked_thenBookHistoryServiceOperationExceptionThrown() {
-//        // arrange
-//        Long invalidBookId = -1L;
-//        LocalDate beginDate = LocalDate.of(2022, 7, 13);
-//        LocalDate endDate = LocalDate.now();
-//
-//        doThrow(ObjectNotFoundException.class).when(bookHistoryRepository).getBookHistoriesByBookIdForPeriod(invalidBookId, beginDate, endDate);
-//
-//        // act and assert
-//        assertThrows(BookHistoryServiceOperationException.class, () -> bookHistoryService.getBookHistoriesByBookIdForPeriod(invalidBookId, beginDate, endDate));
-//    }
+    @DisplayName("JUnit negative test for BookHistoryServiceImplTest getBookHistoriesByBookIdForPeriod method")
+    @Test
+    void givenNonexistentBookIdBeginDateAndEndDate_whenGetBookHistoriesByBookIdForPeriodInvoked_thenBookNotFoundExceptionThrown() {
+        // arrange
+        Long nonexistentBookId = invalidBookIdForTest;
+        LocalDate beginDate = LocalDate.of(2022, 7, 13);
+        LocalDate endDate = LocalDate.now();
+
+        doThrow(BookNotFoundException.class).when(bookService).getBookById(nonexistentBookId);
+
+        // act and assert
+        assertThrows(BookNotFoundException.class, () -> bookHistoryService.getBookHistoriesByBookIdForPeriod(nonexistentBookId, beginDate, endDate));
+    }
 
     @DisplayName("JUnit positive test for BookHistoryServiceImplTest getBookHistoryById method")
     @Test
@@ -207,17 +220,17 @@ class BookHistoryServiceImplTest {
         verify(bookHistoryRepository, times(1)).getBookHistoryById(bookHistoryId);
     }
 
-//    @DisplayName("JUnit negative test for BookHistoryServiceImplTest getBookHistoryById method")
-//    @Test
-//    void givenInvalidBookHistoryId_whenGetBookHistoryByIdInvoked_thenBookHistoryServiceOperationExceptionThrown() {
-//        // arrange
-//        Long invalidBookHistoryId = invalidBookHistory.getId();
-//
-//        doThrow(ObjectNotFoundException.class).when(bookHistoryRepository).getBookHistoryById(invalidBookHistoryId);
-//
-//        // act and assert
-//        assertThrows(BookHistoryServiceOperationException.class, () -> bookHistoryService.getBookHistoryById(invalidBookHistoryId));
-//    }
+    @DisplayName("JUnit negative test for BookHistoryServiceImplTest getBookHistoryById method")
+    @Test
+    void givenInvalidBookHistoryId_whenGetBookHistoryByIdInvoked_thenBookHistoryNotFoundExceptionThrown() {
+        // arrange
+        Long invalidBookHistoryId = invalidBookHistory.getId();
+
+        doThrow(BookHistoryNotFoundException.class).when(bookHistoryRepository).getBookHistoryById(invalidBookHistoryId);
+
+        // act and assert
+        assertThrows(BookHistoryNotFoundException.class, () -> bookHistoryService.getBookHistoryById(invalidBookHistoryId));
+    }
 
     @DisplayName("JUnit positive test for BookHistoryServiceImplTest findAndGetExpiredRent method")
     @Test
@@ -228,30 +241,4 @@ class BookHistoryServiceImplTest {
         // assert
         verify(bookHistoryRepository, times(1)).findAndGetExpiredRent();
     }
-
-    @DisplayName("JUnit positive test for BookHistoryServiceImplTest deleteBookHistoriesByBookId method")
-    @Test
-    void givenBookId_whenDeleteBookHistoriesByBookIdInvoked_thenServiceBookContainsCheckAndRepoDeleteBookHistoriesByBookIdCalled() {
-        // arrange
-        Long bookId = bookHistory.getBook().getId();
-
-        // act
-        bookHistoryService.deleteBookHistoriesByBookId(bookId);
-
-        // assert
-        verify(bookService, times(1)).throwBookNotFoundExceptionIfBookByIdNotContains(eq(bookId), anyString());
-        verify(bookHistoryRepository, times(1)).deleteBookHistoriesByBookId(bookId);
-    }
-
-//    @DisplayName("JUnit negative test for BookHistoryServiceImplTest deleteBookHistoriesByBookId method")
-//    @Test
-//    void givenNonexistentBookId_whenDeleteBookHistoriesByBookIdInvoked_thenBookNotFoundExceptionThrown() {
-//        // arrange
-//        Long nonexistentBookId = -1L;
-//
-//        doThrow(BookNotFoundException.class).when(bookService).throwBookNotFoundExceptionIfBookByIdNotContains(eq(nonexistentBookId), anyString());
-//
-//        // act and assert
-//        assertThrows(BookNotFoundException.class, () -> bookHistoryService.deleteBookHistoriesByBookId(nonexistentBookId));
-//    }
 }

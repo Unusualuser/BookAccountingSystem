@@ -56,7 +56,7 @@ public class UserController {
 
     @GetMapping("/moder/user/{id}")
     @ApiOperation(value = "Метод для получения пользователя по id")
-    public ResponseEntity<?> getUserById(@ApiParam(value = "Идентификатор пользователя", required = true)
+    public ResponseEntity<?> getUserById(@ApiParam(value = "Идентификатор пользователя", example = "1", required = true)
                                          @Min(value = 0L, message = "Значение id должно быть положительным")
                                          @PathVariable
                                          Long id) {

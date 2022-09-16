@@ -28,7 +28,7 @@ public class BookStorage implements Serializable {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "book_id", unique = true)
+    @JoinColumn(name = "book_id")
     private Book book;
 
     @Column(name = "quantity", nullable = false)

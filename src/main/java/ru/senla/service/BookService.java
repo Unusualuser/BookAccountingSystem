@@ -14,6 +14,4 @@ public interface BookService {
     Book getBookById(Long id);
 
     List<Book> getAllBooks();
-
-    void throwBookNotFoundExceptionIfBookByIdNotContains(Long bookId, String debugMessage);
 }

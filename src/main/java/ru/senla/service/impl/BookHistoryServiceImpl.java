@@ -1,19 +1,12 @@
 package ru.senla.service.impl;
 
 import org.apache.log4j.Logger;
-import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.senla.exception.BookHistoryNotFoundException;
-import ru.senla.exception.BookHistoryServiceOperationException;
-import ru.senla.exception.BookNotFoundException;
-import ru.senla.exception.BookStorageIllegalReduceQuantityException;
-import ru.senla.exception.BookStorageNotFoundException;
-import ru.senla.exception.InternalException;
-import ru.senla.exception.UserNotFoundException;
+import ru.senla.exception.BookHistoryRentAlreadyCompleted;
 import ru.senla.model.Book;
 import ru.senla.model.BookHistory;
 import ru.senla.model.User;
@@ -49,60 +42,42 @@ public class BookHistoryServiceImpl implements BookHistoryService {
     @Transactional
     @Override
     public void rentBook(Long bookId, String userLogin) {
-        try {
-            bookStorageService.decrementQuantityByBookId(bookId);
+        Book book = bookService.getBookById(bookId);
+        User user = userService.getUserByLogin(userLogin);
+        LocalDate rentalDate = LocalDate.now();
+        LocalDate returnDeadlineDate = rentalDate.plusMonths(bookRentDurationInMonth);
 
-            Book book = bookService.getBookById(bookId);
-            User user = userService.getUserByLogin(userLogin);
-            LocalDate rentalDate = LocalDate.now();
-            LocalDate returnDeadlineDate = rentalDate.plusMonths(bookRentDurationInMonth);
+        bookStorageService.decrementQuantityByBookId(bookId);
 
-            bookHistoryRepository.saveBookHistory(new BookHistory(book, user, rentalDate, returnDeadlineDate));
-        } catch (BookStorageIllegalReduceQuantityException e) {
-            LOGGER.debug(String.format("%s %s", "Ошибка при добавлении новой записи об аренде книги.", e.getMessage()), e);
-            throw new BookHistoryServiceOperationException(e.getMessage());
-        } catch (BookStorageNotFoundException e) {
-            LOGGER.debug(String.format("%s %s", "Ошибка при добавлении новой записи об аренде книги.", e.getMessage()), e);
-            throw new BookHistoryServiceOperationException(String.format("Книга с bookId %d не найдена в хранилище.", bookId));
-        } catch (BookNotFoundException e) {
-            LOGGER.debug(String.format("%s %s", "Ошибка при добавлении новой записи об аренде книги.", e.getMessage()), e);
-            throw new BookHistoryServiceOperationException(String.format("Книга с bookId %d не найдена.", bookId));
-        } catch (UserNotFoundException e) {
-            LOGGER.debug(String.format("%s %s", "Ошибка при добавлении новой записи об аренде книги.", e.getMessage()), e);
-            throw new InternalException();
-        }
+        bookHistoryRepository.saveBookHistory(new BookHistory(book, user, rentalDate, returnDeadlineDate));
     }
 
     @Transactional
     @Override
     public void returnRentedBook(Long bookHistoryId) {
-        try {
-            LocalDate returnDate = LocalDate.now();
-            BookHistory bookHistory = getBookHistoryById(bookHistoryId);
-            bookHistory.setReturnDate(returnDate);
+        BookHistory bookHistory = getBookHistoryById(bookHistoryId);
 
-            bookStorageService.incrementQuantityByBookId(bookHistory.getBook().getId());
-        } catch (BookHistoryNotFoundException e) {
-            LOGGER.debug(String.format("%s %s", "Ошибка при возврате арендованной книги.", e.getMessage()), e);
-            throw new BookHistoryNotFoundException(e.getMessage());
-        } catch (BookStorageNotFoundException e) {
-            LOGGER.debug(String.format("%s %s", "Ошибка при возврате арендованной книги.", e.getMessage()), e);
-            throw new InternalException();
+        if (bookHistory.getReturnDate() != null) {
+            String errorMessage = String.format("Невозможно завершить аренду книги, так как она уже завершена для bookHistoryId %d", bookHistoryId);
+            LOGGER.error(errorMessage);
+            throw new BookHistoryRentAlreadyCompleted(errorMessage);
         }
+
+        LocalDate returnDate = LocalDate.now();
+        bookHistory.setReturnDate(returnDate);
+
+        bookStorageService.incrementQuantityByBookId(bookHistory.getBook().getId());
     }
 
-    @Transactional
     @Override
     public void deleteBookHistoriesByBookId(Long bookId) {
-        bookService.throwBookNotFoundExceptionIfBookByIdNotContains(bookId, "Ошибка при удалении историй о книге.");
-
         bookHistoryRepository.deleteBookHistoriesByBookId(bookId);
     }
 
     @Transactional
     @Override
     public List<BookHistory> getFullBookHistoryByBookId(Long id) {
-        bookService.throwBookNotFoundExceptionIfBookByIdNotContains(id, "Ошибка при получении полной истории о книге.");
+        bookService.getBookById(id);
 
         return bookHistoryRepository.getFullBookHistoryByBookId(id);
     }
@@ -110,21 +85,14 @@ public class BookHistoryServiceImpl implements BookHistoryService {
     @Transactional
     @Override
     public List<BookHistory> getBookHistoriesByBookIdForPeriod(Long id, LocalDate beginDate, LocalDate endDate) {
-        bookService.throwBookNotFoundExceptionIfBookByIdNotContains(id, "Ошибка при получении истории о книге за период.");
+        bookService.getBookById(id);
 
         return bookHistoryRepository.getBookHistoriesByBookIdForPeriod(id, beginDate, endDate);
     }
 
     @Override
     public BookHistory getBookHistoryById(Long id) {
-        try {
-            return bookHistoryRepository.getBookHistoryById(id);
-        } catch (ObjectNotFoundException e) {
-            String errorMessage = String.format("Запись истории аренды с id %d не найдена.", id);
-            LOGGER.debug(String.format("%s %s", "Ошибка при получении истории книги.", e.getMessage()), e);
-            LOGGER.error(errorMessage);
-            throw new BookHistoryNotFoundException(errorMessage);
-        }
+        return bookHistoryRepository.getBookHistoryById(id);
     }
 
     @Override

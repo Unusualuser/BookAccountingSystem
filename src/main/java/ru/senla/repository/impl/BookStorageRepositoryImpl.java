@@ -1,10 +1,11 @@
 package ru.senla.repository.impl;
 
-import org.hibernate.ObjectNotFoundException;
+import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.senla.exception.BookStorageIllegalReduceQuantityException;
+import ru.senla.exception.BookStorageNotFoundException;
 import ru.senla.model.BookStorage;
 import ru.senla.repository.BookStorageRepository;
 
@@ -13,6 +14,7 @@ import java.util.List;
 @Repository
 @Transactional
 public class BookStorageRepositoryImpl implements BookStorageRepository {
+    private final static Logger LOGGER = Logger.getLogger(BookStorageRepositoryImpl.class);
     private final SessionFactory sessionFactory;
 
     public BookStorageRepositoryImpl(SessionFactory sessionFactory) {
@@ -32,6 +34,7 @@ public class BookStorageRepositoryImpl implements BookStorageRepository {
         boolean isQuantityGreaterThanQuantityToBeReduce = (bookStorage.getQuantity() - quantityToBeReduce) >= 0;
 
         if (!isQuantityGreaterThanQuantityToBeReduce) {
+            LOGGER.debug("Ошибка при уменьшении количества книг.");
             throw new BookStorageIllegalReduceQuantityException(id);
         }
 
@@ -67,10 +70,8 @@ public class BookStorageRepositoryImpl implements BookStorageRepository {
                 .list();
 
         if (bookStorageList.size() != 1) {
-            throw new ObjectNotFoundException(
-                    BookStorage.class,
-                    String.format("Записи BookStorage c book_id %d не найдено.", id)
-            );
+            LOGGER.debug("Ошибка при получении хранилища книг по id.");
+            throw new BookStorageNotFoundException(String.format("Записи BookStorage c book_id %d не найдено.", id));
         }
 
         return bookStorageList.get(0);

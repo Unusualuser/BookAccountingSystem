@@ -47,8 +47,8 @@ public class EmailSender {
             Transport.send(message, username, password);
         } catch (MessagingException e) {
             String errorMessage = String.format("Не удалось отправить сообщение по email %s.", toEmail);
-            LOGGER.error(String.format("%s %s", "Ошибка при отправке email.", e.getMessage()), e);
-            LOGGER.debug(errorMessage);
+            LOGGER.debug(String.format("%s %s", "Ошибка при отправке email.", e.getMessage()), e);
+            LOGGER.error(errorMessage);
             throw new EmailSendingException(errorMessage);
         }
     }

@@ -1,8 +1,10 @@
 package ru.senla.repository.impl;
 
+import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import ru.senla.exception.BookHistoryNotFoundException;
 import ru.senla.model.BookHistory;
 import ru.senla.repository.BookHistoryRepository;
 
@@ -12,6 +14,7 @@ import java.util.List;
 @Repository
 @Transactional
 public class BookHistoryRepositoryImpl implements BookHistoryRepository {
+    private final static Logger LOGGER = Logger.getLogger(BookHistoryRepositoryImpl.class);
     private final SessionFactory sessionFactory;
 
     public BookHistoryRepositoryImpl(SessionFactory sessionFactory) {
@@ -49,7 +52,15 @@ public class BookHistoryRepositoryImpl implements BookHistoryRepository {
 
     @Override
     public BookHistory getBookHistoryById(Long id) {
-        return sessionFactory.getCurrentSession().load(BookHistory.class, id);
+        BookHistory bookHistory = sessionFactory.getCurrentSession().get(BookHistory.class, id);
+
+        if (bookHistory == null) {
+            String errorMessage = String.format("Запись истории аренды с id %d не найдена.", id);
+            LOGGER.error(errorMessage);
+            throw new BookHistoryNotFoundException(errorMessage);
+        }
+
+        return bookHistory;
     }
 
     @Override

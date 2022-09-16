@@ -1,6 +1,5 @@
 package ru.senla.service.impl;
 
-import org.hibernate.exception.SQLGrammarException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,7 +8,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.senla.exception.BookNotFoundException;
-import ru.senla.exception.BookStorageServiceOperationException;
 import ru.senla.model.Book;
 import ru.senla.model.BookStorage;
 import ru.senla.model.Request;
@@ -45,6 +43,7 @@ class BookStorageServiceImplTest {
     @InjectMocks
     private BookStorageServiceImpl bookStorageService;
     private BookStorage bookStorage;
+    private final Long invalidBookIdForTest = -1L;
 
     @BeforeEach
     public void init() {
@@ -59,7 +58,7 @@ class BookStorageServiceImplTest {
 
     @DisplayName("JUnit positive test for BookStorageServiceImplTest addQuantityByBookIdCloseRequestsIfExistsAndNotifyUsers method")
     @Test
-    void givenBookIdAndAdditionalQuantity_whenAddQuantityByBookIdCloseRequestsIfExistsAndNotifyUsersInvoked_thenServicesCloseRequestsBookContainsCheckRepoAddQuantityMethodsCalledAndUsersNotified() {
+    void givenBookIdAndAdditionalQuantity_whenAddQuantityByBookIdCloseRequestsIfExistsAndNotifyUsersInvoked_thenBookServiceGetBookByIdRequestServiceCloseBatchRequestsByBookIdAndBatchRepoAddQuantityMethodsCalledAndUsersNotified() {
         // arrange
         Long bookId = bookStorage.getBook().getId();
         Long additionalQuantity = 1L;
@@ -77,34 +76,73 @@ class BookStorageServiceImplTest {
         List<Request> batchRequests = List.of(request);
 
         when(requestService.closeBatchRequestsByBookIdAndBatch(bookId, additionalQuantity)).thenReturn(batchRequests);
+        when(bookService.getBookById(bookId)).thenReturn(bookStorage.getBook());
 
         // act
         bookStorageService.addQuantityByBookIdCloseRequestsIfExistsAndNotifyUsers(bookId, additionalQuantity);
 
         // assert
-        verify(bookService, times(1)).throwBookNotFoundExceptionIfBookByIdNotContains(eq(bookId), anyString());
+        verify(bookService, times(1)).getBookById(bookId);
         verify(requestService, times(1)).closeBatchRequestsByBookIdAndBatch(bookId, additionalQuantity);
         verify(bookStorageRepository, times(1)).addQuantityByBookId(bookId, additionalQuantity);
         verify(emailSender, times(1)).sendMessage(eq(request.getUser().getEmail()), anyString(), anyString());
     }
 
-//    @DisplayName("JUnit negative test for BookStorageServiceImplTest addQuantityByBookIdCloseRequestsIfExistsAndNotifyUsers method")
-//    @Test
-//    void givenNullBookIdAndAdditionalQuantity_whenAddQuantityByBookIdCloseRequestsIfExistsAndNotifyUsersInvoked_thenBookStorageServiceOperationExceptionThrown() {
-//        // arrange
-//        Long invalidBookId = null;
-//        Long additionalQuantity = 2L;
-//
-//        doThrow(SQLGrammarException.class).when(requestService).closeBatchRequestsByBookIdAndBatch(invalidBookId, additionalQuantity);
-//
-//        // act and assert
-//        assertThrows(BookStorageServiceOperationException.class,
-//                () -> bookStorageService.addQuantityByBookIdCloseRequestsIfExistsAndNotifyUsers(invalidBookId, additionalQuantity));
-//    }
+    @DisplayName("JUnit negative test for BookStorageServiceImplTest addQuantityByBookIdCloseRequestsIfExistsAndNotifyUsers method")
+    @Test
+    void givenNonexistentBookIdAndAdditionalQuantity_whenAddQuantityByBookIdCloseRequestsIfExistsAndNotifyUsersInvoked_thenBookNotFoundExceptionThrown() {
+        // arrange
+        Long nonexistentBookId = invalidBookIdForTest;
+        Long additionalQuantity = 2L;
+
+        doThrow(BookNotFoundException.class).when(bookService).getBookById(nonexistentBookId);
+
+        // act and assert
+        assertThrows(BookNotFoundException.class, () -> bookStorageService.addQuantityByBookIdCloseRequestsIfExistsAndNotifyUsers(nonexistentBookId, additionalQuantity));
+    }
+
+    @DisplayName("JUnit positive test for BookStorageServiceImplTest incrementQuantityByBookId method")
+    @Test
+    void givenBookId_whenIncrementQuantityByBookIdInvoked_thenRepoIncrementQuantityByBookIdCalled() {
+        // act
+        Long bookId = bookStorage.getBook().getId();
+
+        // arrange
+        bookStorageService.incrementQuantityByBookId(bookId);
+
+        // assert
+        verify(bookStorageRepository, times(1)).incrementQuantityByBookId(bookId);
+    }
+
+    @DisplayName("JUnit positive test for BookStorageServiceImplTest decrementQuantityByBookId method")
+    @Test
+    void givenBookId_whenDecrementQuantityByBookIdInvoked_thenRepoDecrementQuantityByBookIdCalled() {
+        // act
+        Long bookId = bookStorage.getBook().getId();
+
+        // arrange
+        bookStorageService.decrementQuantityByBookId(bookId);
+
+        // assert
+        verify(bookStorageRepository, times(1)).decrementQuantityByBookId(bookId);
+    }
+
+    @DisplayName("JUnit positive test for BookStorageServiceImplTest deleteBookStorageByBookId method")
+    @Test
+    void givenBookId_whenDeleteBookStorageByBookIdInvoked_thenRepoDeleteBookStorageByBookIdCalled() {
+        // act
+        Long bookId = bookStorage.getBook().getId();
+
+        // arrange
+        bookStorageService.deleteBookStorageByBookId(bookId);
+
+        // assert
+        verify(bookStorageRepository, times(1)).deleteBookStorageByBookId(bookId);
+    }
 
     @DisplayName("JUnit positive test for BookStorageServiceImplTest reduceQuantityByBookId method")
     @Test
-    void givenBookIdAndQuantityToReduce_whenReduceQuantityByBookIdInvoked_thenServiceBookContainsCheckAndRepoReduceQuantityByBookIdCalled() {
+    void givenBookIdAndQuantityToReduce_whenReduceQuantityByBookIdInvoked_thenBookServiceGetBookByIdAndRepoReduceQuantityByBookIdCalled() {
         // act
         Long bookId = bookStorage.getBook().getId();
         Long quantityToReduce = 2L;
@@ -113,27 +151,26 @@ class BookStorageServiceImplTest {
         bookStorageService.reduceQuantityByBookId(bookId, quantityToReduce);
 
         // assert
-        verify(bookService, times(1)).throwBookNotFoundExceptionIfBookByIdNotContains(eq(bookId), anyString());
+        verify(bookService, times(1)).getBookById(bookId);
         verify(bookStorageRepository, times(1)).reduceQuantityByBookId(bookId, quantityToReduce);
     }
 
-//    @DisplayName("JUnit negative test for BookStorageServiceImplTest reduceQuantityByBookId method")
-//    @Test
-//    void givenNullBookIdAndQuantityToReduce_whenReduceQuantityByBookIdInvoked_thenBookStorageServiceOperationExceptionThrown() {
-//        // arrange
-//        Long invalidBookId = null;
-//        Long quantityToReduce = 1L;
-//
-//        doThrow(SQLGrammarException.class).when(bookStorageRepository).reduceQuantityByBookId(invalidBookId, quantityToReduce);
-//
-//        // act and assert
-//        assertThrows(BookStorageServiceOperationException.class,
-//                () -> bookStorageService.reduceQuantityByBookId(invalidBookId, quantityToReduce));
-//    }
+    @DisplayName("JUnit negative test for BookStorageServiceImplTest reduceQuantityByBookId method")
+    @Test
+    void givenNonexistentBookIdAndQuantityToReduce_whenReduceQuantityByBookIdInvoked_thenBookNotFoundExceptionThrown() {
+        // arrange
+        Long nonexistentBookId = invalidBookIdForTest;
+        Long quantityToReduce = 1L;
+
+        doThrow(BookNotFoundException.class).when(bookService).getBookById(nonexistentBookId);
+
+        // act and assert
+        assertThrows(BookNotFoundException.class, () -> bookStorageService.reduceQuantityByBookId(nonexistentBookId, quantityToReduce));
+    }
 
     @DisplayName("JUnit positive test for BookStorageServiceImplTest getQuantityByBookId method")
     @Test
-    void givenBookId_whenGetQuantityByBookIdInvoked_thenServiceBookContainsCheckAndRepoGetQuantityByBookIdCalled() {
+    void givenBookId_whenGetQuantityByBookIdInvoked_thenBookServiceGetBookByIdAndRepoGetQuantityByBookIdCalled() {
         // act
         Long bookId = bookStorage.getBook().getId();
 
@@ -141,97 +178,19 @@ class BookStorageServiceImplTest {
         bookStorageService.getQuantityByBookId(bookId);
 
         // assert
-        verify(bookService, times(1)).throwBookNotFoundExceptionIfBookByIdNotContains(eq(bookId), anyString());
+        verify(bookService, times(1)).getBookById(bookId);
         verify(bookStorageRepository, times(1)).getQuantityByBookId(bookId);
     }
 
-//    @DisplayName("JUnit negative test for BookStorageServiceImplTest getQuantityByBookId method")
-//    @Test
-//    void givenNullBookId_whenGetQuantityByBookIdInvoked_thenBookStorageServiceOperationExceptionThrown() {
-//        // arrange
-//        Long invalidBookId = null;
-//
-//        doThrow(SQLGrammarException.class).when(bookStorageRepository).getQuantityByBookId(invalidBookId);
-//
-//        // act and assert
-//        assertThrows(BookStorageServiceOperationException.class, () -> bookStorageService.getQuantityByBookId(invalidBookId));
-//    }
-
-    @DisplayName("JUnit positive test for BookStorageServiceImplTest incrementQuantityByBookId method")
+    @DisplayName("JUnit negative test for BookStorageServiceImplTest getQuantityByBookId method")
     @Test
-    void givenBookId_whenIncrementQuantityByBookIdInvoked_thenServiceBookContainsCheckAndRepoIncrementQuantityByBookIdCalled() {
-        // act
-        Long bookId = bookStorage.getBook().getId();
-
+    void givenNonexistentBookId_whenGetQuantityByBookIdInvoked_thenBookStorageServiceOperationExceptionThrown() {
         // arrange
-        bookStorageService.incrementQuantityByBookId(bookId);
+        Long nonexistentBookId = invalidBookIdForTest;
 
-        // assert
-        verify(bookService, times(1)).throwBookNotFoundExceptionIfBookByIdNotContains(eq(bookId), anyString());
-        verify(bookStorageRepository, times(1)).incrementQuantityByBookId(bookId);
+        doThrow(BookNotFoundException.class).when(bookService).getBookById(nonexistentBookId);
+
+        // act and assert
+        assertThrows(BookNotFoundException.class, () -> bookStorageService.getQuantityByBookId(nonexistentBookId));
     }
-
-//    @DisplayName("JUnit negative test for BookStorageServiceImplTest incrementQuantityByBookId method")
-//    @Test
-//    void givenNonexistentBookId_whenIncrementQuantityByBookIdInvoked_thenBookNotFoundExceptionThrown() {
-//        // arrange
-//        Long nonexistentBookId = -1L;
-//
-//        doThrow(BookNotFoundException.class).when(bookService).throwBookNotFoundExceptionIfBookByIdNotContains(eq(nonexistentBookId), anyString());
-//
-//        // act and assert
-//        assertThrows(BookNotFoundException.class, () -> bookStorageService.incrementQuantityByBookId(nonexistentBookId));
-//    }
-
-    @DisplayName("JUnit positive test for BookStorageServiceImplTest decrementQuantityByBookId method")
-    @Test
-    void givenBookId_whenDecrementQuantityByBookIdInvoked_thenServiceBookContainsCheckAndRepoDecrementQuantityByBookIdCalled() {
-        // act
-        Long bookId = bookStorage.getBook().getId();
-
-        // arrange
-        bookStorageService.decrementQuantityByBookId(bookId);
-
-        // assert
-        verify(bookService, times(1)).throwBookNotFoundExceptionIfBookByIdNotContains(eq(bookId), anyString());
-        verify(bookStorageRepository, times(1)).decrementQuantityByBookId(bookId);
-    }
-
-//    @DisplayName("JUnit negative test for BookStorageServiceImplTest decrementQuantityByBookId method")
-//    @Test
-//    void givenNonexistentBookId_whenDecrementQuantityByBookIdInvoked_thenBookNotFoundExceptionThrown() {
-//        // arrange
-//        Long nonexistentBookId = -1L;
-//
-//        doThrow(BookNotFoundException.class).when(bookService).throwBookNotFoundExceptionIfBookByIdNotContains(eq(nonexistentBookId), anyString());
-//
-//        // act and assert
-//        assertThrows(BookNotFoundException.class, () -> bookStorageService.decrementQuantityByBookId(nonexistentBookId));
-//    }
-
-    @DisplayName("JUnit positive test for BookStorageServiceImplTest deleteBookStorageByBookId method")
-    @Test
-    void givenBookId_whenDeleteBookStorageByBookIdInvoked_thenServiceBookContainsCheckAndRepoDeleteBookStorageByBookIdCalled() {
-        // act
-        Long bookId = bookStorage.getBook().getId();
-
-        // arrange
-        bookStorageService.deleteBookStorageByBookId(bookId);
-
-        // assert
-        verify(bookService, times(1)).throwBookNotFoundExceptionIfBookByIdNotContains(eq(bookId), anyString());
-        verify(bookStorageRepository, times(1)).deleteBookStorageByBookId(bookId);
-    }
-
-//    @DisplayName("JUnit negative test for BookStorageServiceImplTest deleteBookStorageByBookId method")
-//    @Test
-//    void givenNonexistentBookId_whenDeleteBookStorageByBookIdInvoked_thenBookNotFoundExceptionThrown() {
-//        // arrange
-//        Long nonexistentBookId = -1L;
-//
-//        doThrow(BookNotFoundException.class).when(bookService).throwBookNotFoundExceptionIfBookByIdNotContains(eq(nonexistentBookId), anyString());
-//
-//        // act and assert
-//        assertThrows(BookNotFoundException.class, () -> bookStorageService.deleteBookStorageByBookId(nonexistentBookId));
-//    }
 }

@@ -2,6 +2,7 @@ package ru.senla.model;
 
 import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxy;
+import ru.senla.exception.RequestAlreadyCompletedException;
 import ru.senla.model.fieldenum.RequestStatus;
 
 import javax.persistence.Column;
@@ -111,7 +112,7 @@ public class Request implements Serializable {
 
     public void setRequestStatus(RequestStatus requestStatus) {
         if (this.requestStatus == RequestStatus.DONE && requestStatus == RequestStatus.DONE)
-            throw new UnsupportedOperationException(String.format("Запрос с id %d уже выполнен.", this.id));
+            throw new RequestAlreadyCompletedException(String.format("Запрос с id %d уже выполнен.", this.id));
 
         this.requestStatus = requestStatus;
     }

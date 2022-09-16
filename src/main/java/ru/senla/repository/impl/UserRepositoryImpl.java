@@ -1,9 +1,10 @@
 package ru.senla.repository.impl;
 
-import org.hibernate.ObjectNotFoundException;
+import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import ru.senla.exception.UserNotFoundException;
 import ru.senla.model.User;
 import ru.senla.repository.UserRepository;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @Repository
 @Transactional
 public class UserRepositoryImpl implements UserRepository {
+    private final static Logger LOGGER = Logger.getLogger(UserRepositoryImpl.class);
     private final SessionFactory sessionFactory;
 
     public UserRepositoryImpl(SessionFactory sessionFactory) {
@@ -25,7 +27,15 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User getUserById(Long id) {
-        return sessionFactory.getCurrentSession().load(User.class, id);
+        User user = sessionFactory.getCurrentSession().get(User.class, id);
+
+        if (user == null) {
+            String errorMessage = String.format("Пользователь с id %d не найден.", id);
+            LOGGER.error(errorMessage);
+            throw new UserNotFoundException(errorMessage);
+        }
+
+        return user;
     }
 
     @Override
@@ -33,7 +43,8 @@ public class UserRepositoryImpl implements UserRepository {
          User user = getUserByLoginOrNullIfNotExists(login);
 
         if (user == null) {
-            throw new ObjectNotFoundException(User.class, String.format("Пользователь c логином %s не найден.", login));
+            LOGGER.debug("Ошибка при получении пользователя по логину.");
+            throw new UserNotFoundException(String.format("Пользователь c логином %s не найден.", login));
         }
 
         return user;

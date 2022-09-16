@@ -1,6 +1,5 @@
 package ru.senla.service.impl;
 
-import org.hibernate.exception.SQLGrammarException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,7 +8,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.senla.exception.BookNotFoundException;
-import ru.senla.exception.RequestServiceOperationException;
 import ru.senla.model.Book;
 import ru.senla.model.Request;
 import ru.senla.model.User;
@@ -23,8 +21,6 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -47,7 +43,7 @@ class RequestServiceImplTest {
 
     @DisplayName("JUnit positive test for RequestServiceImplTest requestBookByIdAndUserLogin method")
     @Test
-    void givenBookIdAndUserLogin_whenRequestBookByIdAndUserLoginInvoked_thenServicesGetBookGetUserAndRepoSaveRequestMethodsCalled() {
+    void givenBookIdAndUserLogin_whenRequestBookByIdAndUserLoginInvoked_thenServicesGetQuantityGetBookGetUserAndRepoSaveRequestMethodsCalled() {
         // act
         User user = new User("андрей",
                 "адрес",
@@ -61,6 +57,7 @@ class RequestServiceImplTest {
         String userLogin = user.getLogin();
         ArgumentCaptor<Request> captor = ArgumentCaptor.forClass(Request.class);
 
+        when(bookStorageService.getQuantityByBookId(bookId)).thenReturn(0L);
         when(bookService.getBookById(bookId)).thenReturn(book);
         when(userService.getUserByLogin(userLogin)).thenReturn(user);
 
@@ -68,6 +65,7 @@ class RequestServiceImplTest {
         requestService.requestBookByIdAndUserLogin(bookId, userLogin);
 
         // assert
+        verify(bookStorageService, times(1)).getQuantityByBookId(bookId);
         verify(bookService, times(1)).getBookById(bookId);
         verify(userService, times(1)).getUserByLogin(userLogin);
         verify(requestRepository, times(1)).saveRequest(captor.capture());
@@ -75,22 +73,36 @@ class RequestServiceImplTest {
         assertEquals(captor.getValue().getUser(), user);
     }
 
-//    @DisplayName("JUnit negative test for RequestServiceImplTest requestBookByIdAndUserLogin method")
-//    @Test
-//    void givenInvalidBookIdAndUserLogin_whenRequestBookByIdAndUserLoginInvoked_thenBookStorageServiceOperationExceptionThrown() {
-//        // arrange
-//        Long invalidBookId = invalidBookIdForTest;
-//        String userLogin = "login";
-//
-//        doThrow(NullPointerException.class).when(bookService).getBookById(invalidBookId);
-//
-//        // act and assert
-//        assertThrows(RequestServiceOperationException.class, () -> requestService.requestBookByIdAndUserLogin(invalidBookId, userLogin));
-//    }
+    @DisplayName("JUnit negative test for RequestServiceImplTest requestBookByIdAndUserLogin method")
+    @Test
+    void givenNonexistentBookIdAndUserLogin_whenRequestBookByIdAndUserLoginInvoked_thenBookNotFoundExceptionThrown() {
+        // arrange
+        Long nonexistentBookId = invalidBookIdForTest;
+        String userLogin = "login";
+
+        doThrow(BookNotFoundException.class).when(bookService).getBookById(nonexistentBookId);
+
+        // act and assert
+        assertThrows(BookNotFoundException.class, () -> requestService.requestBookByIdAndUserLogin(nonexistentBookId, userLogin));
+    }
+
+    @DisplayName("JUnit positive test for RequestServiceImplTest closeBatchRequestsByBookIdAndBatch method")
+    @Test
+    void givenBookIdAndBatch_whenCloseBatchRequestsByBookIdAndBatchInvoked_thenRepoCloseBatchRequestsByBookIdAndBatchCalled() {
+        // act
+        Long bookId = bookIdForTest;
+        Long batch = 5L;
+
+        // arrange
+        requestService.closeBatchRequestsByBookIdAndBatch(bookId, batch);
+
+        // assert
+        verify(requestRepository, times(1)).closeBatchRequestsByBookIdAndBatch(bookId, batch);
+    }
 
     @DisplayName("JUnit positive test for RequestServiceImplTest getRequestsByBookIdForPeriod method")
     @Test
-    void givenBookIdBeginDttmAndEndDttm_whenGetRequestsByBookIdForPeriodInvoked_thenServiceBookContainsCheckAndRepoGetRequestsByBookIdForPeriodCalled() {
+    void givenBookIdBeginDttmAndEndDttm_whenGetRequestsByBookIdForPeriodInvoked_thenBookServiceGetBookByIdAndRepoGetRequestsByBookIdForPeriodCalled() {
         // act
         Long bookId = bookIdForTest;
         LocalDateTime beginDttm = LocalDateTime.of(2022, 8, 20, 10, 10, 10);
@@ -100,27 +112,27 @@ class RequestServiceImplTest {
         requestService.getRequestsByBookIdForPeriod(bookId, beginDttm, endDttm);
 
         // assert
-        verify(bookService, times(1)).throwBookNotFoundExceptionIfBookByIdNotContains(eq(bookId), anyString());
+        verify(bookService, times(1)).getBookById(bookId);
         verify(requestRepository, times(1)).getRequestsByBookIdForPeriod(bookId, beginDttm, endDttm);
     }
 
-//    @DisplayName("JUnit negative test for RequestServiceImplTest getRequestsByBookIdForPeriod method")
-//    @Test
-//    void givenNullBookIdBeginDttmAndEndDttm_whenGetRequestsByBookIdForPeriodInvoked_thenBookStorageServiceOperationExceptionThrown() {
-//        // arrange
-//        Long invalidBookId = null;
-//        LocalDateTime beginDttm = LocalDateTime.of(2022, 8, 20, 10, 10, 10);
-//        LocalDateTime endDttm = LocalDateTime.now();
-//
-//        doThrow(SQLGrammarException.class).when(requestRepository).getRequestsByBookIdForPeriod(invalidBookId, beginDttm, endDttm);
-//
-//        // act and assert
-//        assertThrows(RequestServiceOperationException.class, () -> requestService.getRequestsByBookIdForPeriod(invalidBookId, beginDttm, endDttm));
-//    }
+    @DisplayName("JUnit negative test for RequestServiceImplTest getRequestsByBookIdForPeriod method")
+    @Test
+    void givenNonexistentBookIdBeginDttmAndEndDttm_whenGetRequestsByBookIdForPeriodInvoked_thenBookNotFoundExceptionThrown() {
+        // arrange
+        Long nonexistentBookId = invalidBookIdForTest;
+        LocalDateTime beginDttm = LocalDateTime.of(2022, 8, 20, 10, 10, 10);
+        LocalDateTime endDttm = LocalDateTime.now();
+
+        doThrow(BookNotFoundException.class).when(bookService).getBookById(nonexistentBookId);
+
+        // act and assert
+        assertThrows(BookNotFoundException.class, () -> requestService.getRequestsByBookIdForPeriod(nonexistentBookId, beginDttm, endDttm));
+    }
 
     @DisplayName("JUnit positive test for RequestServiceImplTest getAllRequestsByBookId method")
     @Test
-    void givenBookId_whenGetAllRequestsByBookIdInvoked_thenServiceBookContainsCheckAndRepoGetRequestsByBookIdForPeriodCalled() {
+    void givenBookId_whenGetAllRequestsByBookIdInvoked_thenBookServiceGetBookByIdAndRepoGetRequestsByBookIdForPeriodCalled() {
         // act
         Long bookId = bookIdForTest;
 
@@ -128,53 +140,25 @@ class RequestServiceImplTest {
         requestService.getAllRequestsByBookId(bookId);
 
         // assert
-        verify(bookService, times(1)).throwBookNotFoundExceptionIfBookByIdNotContains(eq(bookId), anyString());
+        verify(bookService, times(1)).getBookById(bookId);
         verify(requestRepository, times(1)).getAllRequestsByBookId(bookId);
     }
 
-//    @DisplayName("JUnit negative test for RequestServiceImplTest getAllRequestsByBookId method")
-//    @Test
-//    void givenNonexistentBookId_whenGetAllRequestsByBookIdInvoked_thenBookNotFoundExceptionThrown() {
-//        // arrange
-//        Long nonexistentBookId = invalidBookIdForTest;
-//
-//        doThrow(BookNotFoundException.class).when(bookService).throwBookNotFoundExceptionIfBookByIdNotContains(eq(nonexistentBookId), anyString());
-//
-//        // act and assert
-//        assertThrows(BookNotFoundException.class, () -> requestService.getAllRequestsByBookId(nonexistentBookId));
-//    }
-
-    @DisplayName("JUnit positive test for RequestServiceImplTest closeBatchRequestsByBookIdAndBatch method")
+    @DisplayName("JUnit negative test for RequestServiceImplTest getAllRequestsByBookId method")
     @Test
-    void givenBookIdAndBatch_whenCloseBatchRequestsByBookIdAndBatchInvoked_thenServiceBookContainsCheckAndRepoCloseBatchRequestsByBookIdAndBatchCalled() {
-        // act
-        Long bookId = bookIdForTest;
-        Long batch = 5L;
-
+    void givenNonexistentBookId_whenGetAllRequestsByBookIdInvoked_thenBookNotFoundExceptionThrown() {
         // arrange
-        requestService.closeBatchRequestsByBookIdAndBatch(bookId, batch);
+        Long nonexistentBookId = invalidBookIdForTest;
 
-        // assert
-        verify(bookService, times(1)).throwBookNotFoundExceptionIfBookByIdNotContains(eq(bookId), anyString());
-        verify(requestRepository, times(1)).closeBatchRequestsByBookIdAndBatch(bookId, batch);
+        doThrow(BookNotFoundException.class).when(bookService).getBookById(nonexistentBookId);
+
+        // act and assert
+        assertThrows(BookNotFoundException.class, () -> requestService.getAllRequestsByBookId(nonexistentBookId));
     }
-
-//    @DisplayName("JUnit negative test for RequestServiceImplTest closeBatchRequestsByBookIdAndBatch method")
-//    @Test
-//    void givenNonexistentBookIdAndBatch_whenCloseBatchRequestsByBookIdAndBatchInvoked_thenBookNotFoundExceptionThrown() {
-//        // arrange
-//        Long nonexistentBookId = invalidBookIdForTest;
-//        Long batch = 5L;
-//
-//        doThrow(BookNotFoundException.class).when(bookService).throwBookNotFoundExceptionIfBookByIdNotContains(eq(nonexistentBookId), anyString());
-//
-//        // act and assert
-//        assertThrows(BookNotFoundException.class, () -> requestService.closeBatchRequestsByBookIdAndBatch(nonexistentBookId, batch));
-//    }
 
     @DisplayName("JUnit positive test for RequestServiceImplTest deleteRequestsByBookId method")
     @Test
-    void givenBookId_whenDeleteRequestsByBookIdInvoked_thenServiceBookContainsCheckAndRepoDeleteRequestsByBookIdCalled() {
+    void givenBookId_whenDeleteRequestsByBookIdInvoked_thenRepoDeleteRequestsByBookIdCalled() {
         // act
         Long bookId = bookIdForTest;
 
@@ -182,19 +166,6 @@ class RequestServiceImplTest {
         requestService.deleteRequestsByBookId(bookId);
 
         // assert
-        verify(bookService, times(1)).throwBookNotFoundExceptionIfBookByIdNotContains(eq(bookId), anyString());
         verify(requestRepository, times(1)).deleteRequestsByBookId(bookId);
     }
-
-//    @DisplayName("JUnit negative test for RequestServiceImplTest deleteRequestsByBookId method")
-//    @Test
-//    void givenNonexistentBookId_whenDeleteRequestsByBookIdInvoked_thenBookNotFoundExceptionThrown() {
-//        // arrange
-//        Long nonexistentBookId = invalidBookIdForTest;
-//
-//        doThrow(BookNotFoundException.class).when(bookService).throwBookNotFoundExceptionIfBookByIdNotContains(eq(nonexistentBookId), anyString());
-//
-//        // act and assert
-//        assertThrows(BookNotFoundException.class, () -> requestService.deleteRequestsByBookId(nonexistentBookId));
-//    }
 }

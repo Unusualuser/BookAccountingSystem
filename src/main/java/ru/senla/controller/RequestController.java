@@ -35,7 +35,7 @@ public class RequestController {
 
     @PostMapping("/request-book-by-id")
     @ApiOperation(value = "Метод для добавления запроса на книгу по id книги")
-    public ResponseEntity<?> requestBook(@ApiParam(value = "Идентификатор книги", required = true)
+    public ResponseEntity<?> requestBook(@ApiParam(value = "Идентификатор книги", example = "1", required = true)
                                          @Min(value = 0L, message = "Значение bookId должно быть положительным")
                                          @RequestParam
                                          Long bookId,
@@ -49,15 +49,15 @@ public class RequestController {
 
     @GetMapping("/moder/requests-by-book-id-for-period")
     @ApiOperation(value = "Метод для получения запросов на книгу по id книги за период")
-    public ResponseEntity<?> getRequestsByBookIdForPeriod(@ApiParam(value = "Идентификатор книги", required = true)
+    public ResponseEntity<?> getRequestsByBookIdForPeriod(@ApiParam(value = "Идентификатор книги", example = "1", required = true)
                                                           @Min(value = 0L, message = "Значение bookId должно быть положительным")
                                                           @RequestParam
                                                           Long bookId,
-                                                          @ApiParam(value = "Дата и время начала периода", required = true)
+                                                          @ApiParam(value = "Дата и время начала периода", example = "2022-09-06T08:23:30", required = true)
                                                           @RequestParam
                                                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
                                                           LocalDateTime beginDttm,
-                                                          @ApiParam(value = "Дата и время конца периода", required = true)
+                                                          @ApiParam(value = "Дата и время конца периода", example = "2022-09-30T08:23:30", required = true)
                                                           @RequestParam
                                                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
                                                           LocalDateTime endDttm) {
@@ -76,7 +76,7 @@ public class RequestController {
 
     @GetMapping("/moder/requests-by-book-id")
     @ApiOperation(value = "Метод для получения всех запросов на книгу по id книги")
-    public ResponseEntity<?> getAllRequestsByBookId(@ApiParam(value = "Идентификатор книги", required = true)
+    public ResponseEntity<?> getAllRequestsByBookId(@ApiParam(value = "Идентификатор книги", example = "1", required = true)
                                                     @Min(value = 0L, message = "Значение bookId должно быть положительным")
                                                     @RequestParam
                                                     Long bookId) {
