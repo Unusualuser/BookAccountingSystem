@@ -8,11 +8,9 @@ import java.util.List;
 public interface RequestRepository {
     void saveRequest(Request request);
 
-    Request getRequestById(Long id);
+    List<Request> closeBatchRequestsByBookIdAndBatch(Long bookId, Long batch);
 
     List<Request> getRequestsByBookIdForPeriod(Long id, LocalDateTime beginDttm, LocalDateTime endDttm);
-
-    List<Request> closeBatchRequestsByBookIdAndBatch(Long bookId, Long batch);
 
     List<Request> getAllRequestsByBookId(Long bookId);
 

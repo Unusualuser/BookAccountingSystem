@@ -37,21 +37,19 @@ public class EmailSender {
                         return new PasswordAuthentication(username, password);
                     }
                 });
-
         try {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             message.setSubject(subj);
             message.setText(textMessage);
+
             Transport.send(message, username, password);
-            System.out.println("Success");
         } catch (MessagingException e) {
-            String errorMessage = "Ошибка при отправке email.";
-            LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
-            LOGGER.debug(String.format("Email назначения: %s, тема: %s, текст сообщения: %s.",
-                    toEmail, subj, textMessage));
-            throw new EmailSendingException(errorMessage, e);
+            String errorMessage = String.format("Не удалось отправить сообщение по email %s.", toEmail);
+            LOGGER.error(String.format("%s %s", "Ошибка при отправке email.", e.getMessage()), e);
+            LOGGER.debug(errorMessage);
+            throw new EmailSendingException(errorMessage);
         }
     }
 }

@@ -2,6 +2,7 @@ package ru.senla.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -35,6 +36,16 @@ public class SecurityConfig {
                 .authorizeRequests()
                 .antMatchers("/moder/**").hasAnyRole("MODERATOR", "ADMIN")
                 .antMatchers("/admin/**").hasRole("ADMIN")
+                .antMatchers(
+                        HttpMethod.GET,
+                        "/v2/api-docs",
+                        "/swagger-resources",
+                        "/swagger-resources/**",
+                        "/configuration/ui",
+                        "/configuration/security",
+                        "/swagger-ui.html",
+                        "/webjars/**"
+                ).permitAll()
                 .antMatchers("/register", "/login").permitAll()
                 .anyRequest().authenticated()
                 .and()

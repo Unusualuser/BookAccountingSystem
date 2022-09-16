@@ -22,7 +22,6 @@ public abstract class Person implements Serializable {
     protected String phoneNumber;
 
     public Person() {
-
     }
 
     public Person(String name, String address, String phoneNumber) {

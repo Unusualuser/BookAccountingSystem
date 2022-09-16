@@ -20,23 +20,12 @@ public class BookHistoryRepositoryImpl implements BookHistoryRepository {
 
     @Override
     public void saveBookHistory(BookHistory bookHistory) {
-        this.sessionFactory.getCurrentSession().save(bookHistory);
-    }
-
-    @Override
-    public void setReturnDateById(Long id, LocalDate returnDate) {
-        this.sessionFactory.getCurrentSession().createNativeQuery(
-                 "UPDATE public.book_history " +
-                    "SET return_date = :returnDate " +
-                    "WHERE book_history_id = :id")
-                .setParameter("returnDate", returnDate)
-                .setParameter("id", id)
-                .executeUpdate();
+        sessionFactory.getCurrentSession().save(bookHistory);
     }
 
     @Override
     public List<BookHistory> getFullBookHistoryByBookId(Long id) {
-        return this.sessionFactory.getCurrentSession().createNativeQuery(
+        return sessionFactory.getCurrentSession().createNativeQuery(
                          "SELECT book_history_id, book_id, user_id, rental_date, return_deadline_date, return_date " +
                             "FROM public.book_history " +
                             "WHERE book_id = :id", BookHistory.class)
@@ -46,7 +35,7 @@ public class BookHistoryRepositoryImpl implements BookHistoryRepository {
 
     @Override
     public List<BookHistory> getBookHistoriesByBookIdForPeriod(Long id, LocalDate beginDate, LocalDate endDate) {
-        return this.sessionFactory.getCurrentSession().createNativeQuery(
+        return sessionFactory.getCurrentSession().createNativeQuery(
                  "SELECT book_history_id, book_id, user_id, rental_date, return_deadline_date, return_date " +
                     "FROM public.book_history " +
                     "WHERE book_id = :id " +
@@ -60,12 +49,12 @@ public class BookHistoryRepositoryImpl implements BookHistoryRepository {
 
     @Override
     public BookHistory getBookHistoryById(Long id) {
-        return this.sessionFactory.getCurrentSession().load(BookHistory.class, id);
+        return sessionFactory.getCurrentSession().load(BookHistory.class, id);
     }
 
     @Override
     public void deleteBookHistoriesByBookId(Long bookId) {
-        this.sessionFactory.getCurrentSession().createNativeQuery(
+        sessionFactory.getCurrentSession().createNativeQuery(
                  "DELETE FROM public.book_history " +
                     "WHERE book_id = :bookId")
                 .setParameter("bookId", bookId)
@@ -75,7 +64,8 @@ public class BookHistoryRepositoryImpl implements BookHistoryRepository {
     @Override
     public List<BookHistory> findAndGetExpiredRent() {
         LocalDate localDateNow = LocalDate.now();
-        return this.sessionFactory.getCurrentSession().createNativeQuery(
+
+        return sessionFactory.getCurrentSession().createNativeQuery(
                  "SELECT book_history_id, book_id, user_id, rental_date, return_deadline_date, return_date " +
                     "FROM public.book_history " +
                     "WHERE return_date IS NULL " +

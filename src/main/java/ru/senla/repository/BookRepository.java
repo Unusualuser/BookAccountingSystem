@@ -12,4 +12,6 @@ public interface BookRepository {
     Book getBookById(Long id);
 
     List<Book> getAllBooks();
+
+    boolean containsById(Long id);
 }

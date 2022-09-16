@@ -42,7 +42,6 @@ public class Book implements Serializable {
     private String description;
 
     public Book() {
-
     }
 
     public Book(String name, Integer publicationYear, String author, String description) {

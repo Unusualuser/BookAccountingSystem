@@ -25,13 +25,8 @@ public class RequestRepositoryImpl implements RequestRepository {
     }
 
     @Override
-    public Request getRequestById(Long id) {
-        return this.sessionFactory.getCurrentSession().load(Request.class, id);
-    }
-
-    @Override
     public List<Request> getRequestsByBookIdForPeriod(Long id, LocalDateTime beginDttm, LocalDateTime endDttm) {
-        return this.sessionFactory.getCurrentSession().createNativeQuery(
+        return sessionFactory.getCurrentSession().createNativeQuery(
                  "SELECT request_id, book_id, user_id, create_dttm, request_status " +
                     "FROM public.request " +
                     "WHERE book_id = :id " +
@@ -45,7 +40,7 @@ public class RequestRepositoryImpl implements RequestRepository {
 
     @Override
     public List<Request> closeBatchRequestsByBookIdAndBatch(Long bookId, Long batch) {
-        List<Request> batchRequests = this.sessionFactory.getCurrentSession().createNativeQuery(
+        List<Request> batchRequests = sessionFactory.getCurrentSession().createNativeQuery(
                  "SELECT request_id, book_id, user_id, create_dttm, request_status " +
                     "FROM public.request " +
                     "WHERE book_id = :bookId " +
@@ -55,6 +50,7 @@ public class RequestRepositoryImpl implements RequestRepository {
                 .setParameter("batch", batch)
                 .setParameter("bookId", bookId)
                 .list();
+
         for (Request request : batchRequests) {
             request.setRequestStatus(RequestStatus.DONE);
         }
@@ -64,7 +60,7 @@ public class RequestRepositoryImpl implements RequestRepository {
 
     @Override
     public List<Request> getAllRequestsByBookId(Long bookId) {
-        return this.sessionFactory.getCurrentSession().createNativeQuery(
+        return sessionFactory.getCurrentSession().createNativeQuery(
                  "SELECT request_id, book_id, user_id, create_dttm, request_status " +
                     "FROM public.request " +
                     "WHERE book_id = :id ", Request.class)
@@ -74,7 +70,7 @@ public class RequestRepositoryImpl implements RequestRepository {
 
     @Override
     public void deleteRequestsByBookId(Long bookId) {
-        this.sessionFactory.getCurrentSession().createNativeQuery(
+        sessionFactory.getCurrentSession().createNativeQuery(
                  "DELETE FROM public.request " +
                     "WHERE book_id = :bookId")
                 .setParameter("bookId", bookId)

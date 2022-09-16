@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
-    public static final Logger logger = Logger.getLogger(CustomAccessDeniedHandler.class);
+    public static final Logger LOGGER = Logger.getLogger(CustomAccessDeniedHandler.class);
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException e)
@@ -19,11 +19,13 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
-            logger.warn("Пользователь: " + auth.getName()
+            LOGGER.warn("Пользователь: " + auth.getName()
                     + " пытался получить доступ к защищённому URL: "
                     + request.getRequestURI());
         }
 
-        response.sendError(HttpServletResponse.SC_FORBIDDEN, "У пользователя не хватает прав доступа для выполнения данной операции.");
+        response.setContentType("application/json;charset=UTF-8");
+        response.setStatus(403);
+        response.getWriter().write("{\"error\": \"У пользователя не хватает прав доступа для выполнения данной операции.\"}");
     }
 }

@@ -8,8 +8,6 @@ import java.util.List;
 public interface BookHistoryRepository {
     void saveBookHistory(BookHistory bookHistory);
 
-    void setReturnDateById(Long id, LocalDate returnDate);
-
     List<BookHistory> getFullBookHistoryByBookId(Long id);
 
     List<BookHistory> getBookHistoriesByBookIdForPeriod(Long id, LocalDate beginDate, LocalDate endDate);

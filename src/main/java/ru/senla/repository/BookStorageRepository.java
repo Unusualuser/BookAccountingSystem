@@ -1,5 +1,7 @@
 package ru.senla.repository;
 
+import ru.senla.model.BookStorage;
+
 public interface BookStorageRepository {
     void addQuantityByBookId(Long id, Long additionalQuantity);
 
@@ -11,5 +13,7 @@ public interface BookStorageRepository {
 
     Long getQuantityByBookId(Long id);
 
-    void deleteBookStoragesByBookId(Long bookId);
+    BookStorage getBookStorageByBookId(Long id);
+
+    void deleteBookStorageByBookId(Long bookId);
 }

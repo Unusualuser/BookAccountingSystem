@@ -1,8 +1,10 @@
 package ru.senla.controller;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,10 +13,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import ru.senla.dto.BookDTO;
-import ru.senla.dto.IdDTO;
-import ru.senla.dto.SaveBookDTO;
-import ru.senla.dto.UpdateBookInfoDTO;
+import ru.senla.dto.BookDto;
+import ru.senla.dto.IdDto;
+import ru.senla.dto.SaveBookRequestDto;
+import ru.senla.dto.UpdateBookInfoRequestDto;
 import ru.senla.model.Book;
 import ru.senla.service.BookService;
 
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @Validated
+@Api(tags = "Методы для взаимодействия с сущностью Book")
 public class BookController {
     private final BookService bookService;
 
@@ -33,13 +36,18 @@ public class BookController {
     }
 
     @PostMapping("/moder/book")
-    public ResponseEntity<?> saveBook(@Valid @RequestBody SaveBookDTO saveBookDTO) {
-        Book book = new Book(saveBookDTO.getName(),
-                             saveBookDTO.getPublicationYear(),
-                             saveBookDTO.getAuthor(),
-                             saveBookDTO.getDescription());
-        this.bookService.saveBook(book);
-        return new ResponseEntity<>(new BookDTO(book.getId(),
+    @ApiOperation(value = "Метод для добавления новой книги")
+    public ResponseEntity<?> saveBook(@ApiParam(value = "Модель запроса SaveBookRequestDto", required = true)
+                                      @Valid
+                                      @RequestBody
+                                      SaveBookRequestDto saveBookRequestDto) {
+        Book book = new Book(saveBookRequestDto.getName(),
+                             saveBookRequestDto.getPublicationYear(),
+                             saveBookRequestDto.getAuthor(),
+                             saveBookRequestDto.getDescription());
+        bookService.saveBook(book);
+
+        return new ResponseEntity<>(new BookDto(book.getId(),
                                                 book.getName(),
                                                 book.getPublicationYear(),
                                                 book.getAuthor(),
@@ -48,35 +56,45 @@ public class BookController {
     }
 
     @PatchMapping("/moder/book")
-    public ResponseEntity<?> updateBookInfo(@Valid @RequestBody UpdateBookInfoDTO updateBookInfoDTO) {
-        this.bookService.updateBookInfo(updateBookInfoDTO.getId(),
-                                        updateBookInfoDTO.getName(),
-                                        updateBookInfoDTO.getPublicationYear(),
-                                        updateBookInfoDTO.getAuthor(),
-                                        updateBookInfoDTO.getDescription());
-        return new ResponseEntity<>(new BookDTO(updateBookInfoDTO.getId(),
-                                                updateBookInfoDTO.getName(),
-                                                updateBookInfoDTO.getPublicationYear(),
-                                                updateBookInfoDTO.getAuthor(),
-                                                updateBookInfoDTO.getDescription()),
+    @ApiOperation(value = "Метод для обновления информации о книге")
+    public ResponseEntity<?> updateBookInfo(@ApiParam(value = "Модель запроса UpdateBookInfoRequestDto", required = true)
+                                            @Valid
+                                            @RequestBody
+                                            UpdateBookInfoRequestDto updateBookInfoRequestDto) {
+        bookService.updateBookInfo(updateBookInfoRequestDto.getId(),
+                                        updateBookInfoRequestDto.getName(),
+                                        updateBookInfoRequestDto.getPublicationYear(),
+                                        updateBookInfoRequestDto.getAuthor(),
+                                        updateBookInfoRequestDto.getDescription());
+
+        return new ResponseEntity<>(new BookDto(updateBookInfoRequestDto.getId(),
+                                                updateBookInfoRequestDto.getName(),
+                                                updateBookInfoRequestDto.getPublicationYear(),
+                                                updateBookInfoRequestDto.getAuthor(),
+                                                updateBookInfoRequestDto.getDescription()),
                                     HttpStatus.OK);
     }
 
     @DeleteMapping("/moder/book/{id}")
-    public ResponseEntity<?> deleteBookById(@Min(value = 0L, message = "Значение id должно быть положительным")
+    @ApiOperation(value = "Метод для удаления книги по id")
+    public ResponseEntity<?> deleteBookById(@ApiParam(value = "Идентификатор книги", required = true)
+                                            @Min(value = 0L, message = "Значение id должно быть положительным")
                                             @PathVariable
                                             Long id) {
-        this.bookService.deleteBookById(id);
-        return new ResponseEntity<>(new IdDTO(id), HttpStatus.OK);
+        bookService.deleteBookById(id);
+
+        return new ResponseEntity<>(new IdDto(id), HttpStatus.OK);
     }
 
-    @Transactional
     @GetMapping("/book/{id}")
-    public ResponseEntity<?> getBookById(@Min(value = 0L, message = "Значение id должно быть положительным")
+    @ApiOperation(value = "Метод для получения книги по id")
+    public ResponseEntity<?> getBookById(@ApiParam(value = "Идентификатор книги", required = true)
+                                         @Min(value = 0L, message = "Значение id должно быть положительным")
                                          @PathVariable
                                          Long id) {
-        Book book = this.bookService.getBookById(id);
-        return new ResponseEntity<>(new BookDTO(book.getId(),
+        Book book = bookService.getBookById(id);
+
+        return new ResponseEntity<>(new BookDto(book.getId(),
                                                 book.getName(),
                                                 book.getPublicationYear(),
                                                 book.getAuthor(),
@@ -85,15 +103,17 @@ public class BookController {
     }
 
     @GetMapping("/all-books")
+    @ApiOperation(value = "Метод для получения всех книг")
     public ResponseEntity<?> getAllBooks() {
-        List<Book> allBooks = this.bookService.getAllBooks();
-        List<BookDTO> allBooksDTO = allBooks.stream()
-                                            .map(book -> new BookDTO(book.getId(),
+        List<Book> allBooks = bookService.getAllBooks();
+        List<BookDto> allBooksDto = allBooks.stream()
+                                            .map(book -> new BookDto(book.getId(),
                                                                      book.getName(),
                                                                      book.getPublicationYear(),
                                                                      book.getAuthor(),
                                                                      book.getDescription()))
                                             .collect(Collectors.toList());
-        return new ResponseEntity<>(allBooksDTO, HttpStatus.OK);
+
+        return new ResponseEntity<>(allBooksDto, HttpStatus.OK);
     }
 }

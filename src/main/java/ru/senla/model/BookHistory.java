@@ -48,8 +48,8 @@ public class BookHistory implements Serializable {
 
     @PrePersist
     protected void onCreate() {
-        if (this.rentalDate == null) {
-            this.rentalDate = LocalDate.now();
+        if (rentalDate == null) {
+            rentalDate = LocalDate.now();
         }
     }
 

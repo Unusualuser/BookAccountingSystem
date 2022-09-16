@@ -19,25 +19,31 @@ public class BookRepositoryImpl implements BookRepository {
 
     @Override
     public void saveBook(Book book) {
-        this.sessionFactory.getCurrentSession().save(book);
+        sessionFactory.getCurrentSession().save(book);
     }
 
     @Override
     public void deleteBookById(Long id) {
         Book bookToDelete = getBookById(id);
-        this.sessionFactory.getCurrentSession().delete(bookToDelete);
+
+        sessionFactory.getCurrentSession().delete(bookToDelete);
     }
 
     @Override
     public Book getBookById(Long id) {
-        return this.sessionFactory.getCurrentSession().load(Book.class, id);
+        return sessionFactory.getCurrentSession().load(Book.class, id);
     }
 
     @Override
     public List<Book> getAllBooks() {
-        return this.sessionFactory.getCurrentSession().createNativeQuery(
+        return sessionFactory.getCurrentSession().createNativeQuery(
                  "SELECT book_id, name, publication_year, author, description " +
                     "FROM public.book", Book.class)
                 .list();
+    }
+
+    @Override
+    public boolean containsById(Long id) {
+        return sessionFactory.getCurrentSession().get(Book.class, id) != null;
     }
 }

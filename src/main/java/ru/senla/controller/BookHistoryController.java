@@ -1,5 +1,8 @@
 package ru.senla.controller;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,11 +13,12 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.senla.dto.BookHistoryDTO;
-import ru.senla.dto.RentBookResponseDTO;
-import ru.senla.dto.ReturnRentedBookResponseDTO;
+import ru.senla.dto.BookHistoryDto;
+import ru.senla.dto.RentBookResponseDto;
+import ru.senla.dto.ReturnRentedBookResponseDto;
 import ru.senla.model.BookHistory;
 import ru.senla.service.BookHistoryService;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.constraints.Min;
 import java.time.LocalDate;
@@ -23,6 +27,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @Validated
+@Api(tags = "Методы для взаимодействия с сущностью BookHistory")
 public class BookHistoryController {
     private final BookHistoryService bookHistoryService;
 
@@ -31,76 +36,88 @@ public class BookHistoryController {
     }
 
     @PostMapping("/rent-book")
-    public ResponseEntity<?> rentBook(@Min(value = 0L, message = "Значение bookId должно быть положительным")
+    @ApiOperation(value = "Метод для аренды книги текущим пользователем по id книги")
+    public ResponseEntity<?> rentBook(@ApiParam(value = "Идентификатор книги", required = true)
+                                      @Min(value = 0L, message = "Значение bookId должно быть положительным")
                                       @RequestParam
                                       Long bookId,
-                                      Authentication authentication) {
-        this.bookHistoryService.rentBook(bookId, authentication.getName());
-        return new ResponseEntity<>(new RentBookResponseDTO(bookId), HttpStatus.OK);
+                                      @ApiIgnore Authentication authentication) {
+        bookHistoryService.rentBook(bookId, authentication.getName());
+
+        return new ResponseEntity<>(new RentBookResponseDto(bookId), HttpStatus.OK);
     }
 
     @PatchMapping("/moder/return-rented-book")
-    public ResponseEntity<?> returnRentedBook(@Min(value = 0L, message = "Значение bookHistoryId должно быть положительным")
+    @ApiOperation(value = "Метод для закрытия аренды книги по id истории книги")
+    public ResponseEntity<?> returnRentedBook(@ApiParam(value = "Идентификатор истории книги", required = true)
+                                              @Min(value = 0L, message = "Значение bookHistoryId должно быть положительным")
                                               @RequestParam
                                               Long bookHistoryId) {
-        this.bookHistoryService.returnRentedBook(bookHistoryId);
-        return new ResponseEntity<>(new ReturnRentedBookResponseDTO(bookHistoryId), HttpStatus.OK);
+        bookHistoryService.returnRentedBook(bookHistoryId);
+
+        return new ResponseEntity<>(new ReturnRentedBookResponseDto(bookHistoryId), HttpStatus.OK);
     }
 
     @GetMapping("/moder/full-book-history-by-book-id")
-    public ResponseEntity<?> getFullBookHistoryByBookId(@Min(value = 0L, message = "Значение bookId должно быть положительным")
+    @ApiOperation(value = "Метод для получения всей истории аренды книги по id книги")
+    public ResponseEntity<?> getFullBookHistoryByBookId(@ApiParam(value = "Идентификатор книги", required = true)
+                                                        @Min(value = 0L, message = "Значение bookId должно быть положительным")
                                                         @RequestParam
                                                         Long bookId) {
-        List<BookHistory> fullBookHistory = this.bookHistoryService.getFullBookHistoryByBookId(bookId);
-        List<BookHistoryDTO> fullBookHistoryDTO = fullBookHistory.stream()
-             .map(bookHistory -> new BookHistoryDTO(
-                                                    bookHistory.getId(),
-                                                    bookHistory.getBook().getId(),
-                                                    bookHistory.getUser().getId(),
-                                                    bookHistory.getRentalDate(),
-                                                    bookHistory.getReturnDeadlineDate(),
-                                                    bookHistory.getReturnDate()))
-             .collect(Collectors.toList());
-        return new ResponseEntity<>(fullBookHistoryDTO, HttpStatus.OK);
+        List<BookHistory> fullBookHistory = bookHistoryService.getFullBookHistoryByBookId(bookId);
+
+        List<BookHistoryDto> fullBookHistoryDto = fullBookHistory.stream()
+                                                                 .map(bookHistory -> new BookHistoryDto(bookHistory.getId(),
+                                                                                                        bookHistory.getBook().getId(),
+                                                                                                        bookHistory.getUser().getId(),
+                                                                                                        bookHistory.getRentalDate(),
+                                                                                                        bookHistory.getReturnDeadlineDate(),
+                                                                                                        bookHistory.getReturnDate()))
+                                                                 .collect(Collectors.toList());
+
+        return new ResponseEntity<>(fullBookHistoryDto, HttpStatus.OK);
     }
 
     @GetMapping("/moder/book-histories-by-book-id-for-period")
-    public ResponseEntity<?> getBookHistoriesByBookIdForPeriod(@Min(value = 0L, message = "Значение bookId должно быть положительным")
+    @ApiOperation(value = "Метод для получения истории аренды книги по id книги за период времени")
+    public ResponseEntity<?> getBookHistoriesByBookIdForPeriod(@ApiParam(value = "Идентификатор книги", required = true)
+                                                               @Min(value = 0L, message = "Значение bookId должно быть положительным")
                                                                @RequestParam
                                                                Long bookId,
+                                                               @ApiParam(value = "Дата начала периода", required = true)
                                                                @RequestParam
                                                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                                                                LocalDate beginDate,
+                                                               @ApiParam(value = "Дата конца периода", required = true)
                                                                @RequestParam
                                                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                                                                LocalDate endDate) {
-        List<BookHistory> bookHistories = this.bookHistoryService.getBookHistoriesByBookIdForPeriod(bookId,
-                                                                                                    beginDate,
-                                                                                                    endDate);
-        List<BookHistoryDTO> bookHistoriesDTO = bookHistories.stream()
-             .map(bookHistory -> new BookHistoryDTO(
-                                                     bookHistory.getId(),
-                                                     bookHistory.getBook().getId(),
-                                                     bookHistory.getUser().getId(),
-                                                     bookHistory.getRentalDate(),
-                                                     bookHistory.getReturnDeadlineDate(),
-                                                     bookHistory.getReturnDate()))
-             .collect(Collectors.toList());
-        return new ResponseEntity<>(bookHistoriesDTO, HttpStatus.OK);
+        List<BookHistory> bookHistories = bookHistoryService.getBookHistoriesByBookIdForPeriod(bookId, beginDate, endDate);
+        List<BookHistoryDto> bookHistoriesDto = bookHistories.stream()
+                                                             .map(bookHistory -> new BookHistoryDto(bookHistory.getId(),
+                                                                                                    bookHistory.getBook().getId(),
+                                                                                                    bookHistory.getUser().getId(),
+                                                                                                    bookHistory.getRentalDate(),
+                                                                                                    bookHistory.getReturnDeadlineDate(),
+                                                                                                    bookHistory.getReturnDate()))
+                                                             .collect(Collectors.toList());
+
+        return new ResponseEntity<>(bookHistoriesDto, HttpStatus.OK);
     }
 
     @GetMapping("/moder/expired-rent")
+    @ApiOperation(value = "Метод для получения просроченных аренд")
     public ResponseEntity<?> findAndGetExpiredRent() {
-        List<BookHistory> expiredRents = this.bookHistoryService.findAndGetExpiredRent();
-        List<BookHistoryDTO> expiredRentsDTO = expiredRents.stream()
-                .map(bookHistory -> new BookHistoryDTO(
-                                                       bookHistory.getId(),
-                                                       bookHistory.getBook().getId(),
-                                                       bookHistory.getUser().getId(),
-                                                       bookHistory.getRentalDate(),
-                                                       bookHistory.getReturnDeadlineDate(),
-                                                       bookHistory.getReturnDate()))
-                .collect(Collectors.toList());
-        return new ResponseEntity<>(expiredRentsDTO, HttpStatus.OK);
+        List<BookHistory> expiredRents = bookHistoryService.findAndGetExpiredRent();
+        List<BookHistoryDto> expiredRentsDto = expiredRents.stream()
+                                                           .map(bookHistory -> new BookHistoryDto(bookHistory.getId(),
+                                                                                                  bookHistory.getBook().getId(),
+                                                                                                  bookHistory.getUser().getId(),
+                                                                                                  bookHistory.getRentalDate(),
+                                                                                                  bookHistory.getReturnDeadlineDate(),
+                                                                                                  bookHistory.getReturnDate()))
+                                                           .collect(Collectors.toList());
+
+        return new ResponseEntity<>(expiredRentsDto, HttpStatus.OK);
     }
 }

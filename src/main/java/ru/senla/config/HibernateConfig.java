@@ -17,15 +17,16 @@ import java.util.Properties;
 public class HibernateConfig {
     @Value("${hibernate.driver.class.name}")
     private String hibernateDriverClassName;
-
     @Value("${hibernate.database.url}")
     private String hibernateDatabaseUrl;
-
-    @Value("$hibernate.database.username}")
+    @Value("${hibernate.database.username}")
     private String hibernateDatabaseUsername;
-
     @Value("${hibernate.database.password}")
     private String hibernateDatabasePassword;
+    @Value("${hibernate.dialect}")
+    private String hibernateDialect;
+    @Value("${hibernate.hbm2ddl.auto}")
+    private String hibernateHbm2ddlAuto;
 
     @Bean
     public LocalSessionFactoryBean sessionFactory() {
@@ -33,16 +34,18 @@ public class HibernateConfig {
         sessionFactory.setDataSource(dataSource());
         sessionFactory.setPackagesToScan("ru.senla");
         sessionFactory.setHibernateProperties(hibernateProperties());
+
         return sessionFactory;
     }
 
     @Bean
     public DataSource dataSource() {
         BasicDataSource dataSource = new BasicDataSource();
-        dataSource.setDriverClassName("org.postgresql.Driver");
-        dataSource.setUrl("jdbc:postgresql://localhost:5432/book_accounting_system");
-        dataSource.setUsername("postgres");
-        dataSource.setPassword("postgres");
+        dataSource.setDriverClassName(hibernateDriverClassName);
+        dataSource.setUrl(hibernateDatabaseUrl);
+        dataSource.setUsername(hibernateDatabaseUsername);
+        dataSource.setPassword(hibernateDatabasePassword);
+
         return dataSource;
     }
 
@@ -50,12 +53,15 @@ public class HibernateConfig {
     public PlatformTransactionManager hibernateTransactionManager() {
         HibernateTransactionManager transactionManager = new HibernateTransactionManager();
         transactionManager.setSessionFactory(sessionFactory().getObject());
+
         return transactionManager;
     }
 
     private Properties hibernateProperties() {
         Properties hibernateProperties = new Properties();
-        hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "update");
+        hibernateProperties.setProperty("hibernate.dialect", hibernateDialect);
+        hibernateProperties.setProperty("hibernate.hbm2ddl.auto", hibernateHbm2ddlAuto);
+
         return hibernateProperties;
     }
 }

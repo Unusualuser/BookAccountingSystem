@@ -12,6 +12,8 @@ public class CustomHttp403ForbiddenEntryPoint implements AuthenticationEntryPoin
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Отказано в доступе. Сначала необходимо выполнить вход.");
+        response.setContentType("application/json;charset=UTF-8");
+        response.setStatus(403);
+        response.getWriter().write("{\"error\": \"Отказано в доступе. Сначала необходимо выполнить вход.\"}");
     }
 }

@@ -1,15 +1,17 @@
 package ru.senla.service.impl;
 
 import org.apache.log4j.Logger;
+import org.hibernate.ObjectNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.senla.exception.BookNotFoundException;
 import ru.senla.exception.BookServiceOperationException;
 import ru.senla.model.Book;
-import ru.senla.repository.BookHistoryRepository;
 import ru.senla.repository.BookRepository;
-import ru.senla.repository.BookStorageRepository;
-import ru.senla.repository.RequestRepository;
+import ru.senla.service.BookHistoryService;
 import ru.senla.service.BookService;
+import ru.senla.service.BookStorageService;
+import ru.senla.service.RequestService;
 
 import java.util.List;
 
@@ -17,87 +19,92 @@ import java.util.List;
 public class BookServiceImpl implements BookService {
     private final static Logger LOGGER = Logger.getLogger(BookServiceImpl.class);
     private BookRepository bookRepository;
-    private BookHistoryRepository bookHistoryRepository;
-    private BookStorageRepository bookStorageRepository;
-    private RequestRepository requestRepository;
+    private BookHistoryService bookHistoryService;
+    private BookStorageService bookStorageService;
+    private RequestService requestService;
 
-    public BookServiceImpl(BookRepository bookRepository, BookHistoryRepository bookHistoryRepository, BookStorageRepository bookStorageRepository, RequestRepository requestRepository) {
+    public BookServiceImpl(BookRepository bookRepository,
+                           BookHistoryService bookHistoryService,
+                           BookStorageService bookStorageService,
+                           RequestService requestService) {
         this.bookRepository = bookRepository;
-        this.bookHistoryRepository = bookHistoryRepository;
-        this.bookStorageRepository = bookStorageRepository;
-        this.requestRepository = requestRepository;
+        this.bookHistoryService = bookHistoryService;
+        this.bookStorageService = bookStorageService;
+        this.requestService = requestService;
     }
 
     @Override
     public void saveBook(Book book) {
-        try {
-            this.bookRepository.saveBook(book);
-        } catch (RuntimeException e) {
-            String errorMessage = "Ошибка при сохранении книги.";
-            LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
-            if (book != null)
-                LOGGER.debug(String.format("Книга: %s.", book.toString()));
-            throw new BookServiceOperationException(errorMessage, e);
-        }
+        bookRepository.saveBook(book);
     }
 
     @Transactional
     @Override
     public void updateBookInfo(Long id, String name, Integer publicationYear, String author, String description) {
         try {
-            Book book = getBookById(id);
-            if (name != null)
+            Book book = bookRepository.getBookById(id);
+            if (name != null) {
                 book.setName(name);
-            if (publicationYear != null)
+            }
+            if (publicationYear != null) {
                 book.setPublicationYear(publicationYear);
-            if (author != null)
+            }
+            if (author != null) {
                 book.setAuthor(author);
-            if (description != null)
+            }
+            if (description != null) {
                 book.setDescription(description);
-        } catch (RuntimeException e) {
-            String errorMessage = "Ошибка при обнновлении информации о книге.";
-            LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
-            LOGGER.debug(String.format("Id книги: %d, новое название: %s, новый год публикации: %d, новый автор: %s, новое описание: %s.",
-                                        id, name, publicationYear, author, description));
-            throw new BookServiceOperationException(errorMessage, e);
+            }
+        } catch (ObjectNotFoundException e) {
+            String errorMessage = String.format("Книга с id %d не найдена", id);
+            LOGGER.debug(String.format("%s %s", "Ошибка при обновлении информации о книге.", e.getMessage()), e);
+            LOGGER.error(errorMessage);
+            throw new BookNotFoundException(errorMessage);
         }
     }
 
+    @Transactional
     @Override
     public void deleteBookById(Long id) {
         try {
-            this.bookHistoryRepository.deleteBookHistoriesByBookId(id);
-            this.bookStorageRepository.deleteBookStoragesByBookId(id);
-            this.requestRepository.deleteRequestsByBookId(id);
-            this.bookRepository.deleteBookById(id);
-        } catch (RuntimeException e) {
-            String errorMessage = "Ошибка при удалении книги.";
-            LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
-            LOGGER.debug(String.format("Id книги: %d.", id));
-            throw new BookServiceOperationException(errorMessage, e);
+            bookHistoryService.deleteBookHistoriesByBookId(id);
+            bookStorageService.deleteBookStorageByBookId(id);
+            requestService.deleteRequestsByBookId(id);
+            bookRepository.deleteBookById(id);
+        } catch (ObjectNotFoundException e) {
+            String errorMessage = String.format("Книга с id %d не найдена", id);
+            LOGGER.debug(String.format("%s %s", "Ошибка при удалении книги.", e.getMessage()), e);
+            LOGGER.error(errorMessage);
+            throw new BookNotFoundException(errorMessage);
         }
     }
 
+    @Transactional
     @Override
     public Book getBookById(Long id) {
         try {
-            return this.bookRepository.getBookById(id);
-        } catch (RuntimeException e) {
-            String errorMessage = "Ошибка при получении книги.";
-            LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
-            LOGGER.debug(String.format("Id книги: %d.", id));
-            throw new BookServiceOperationException(errorMessage, e);
+            Book book = bookRepository.getBookById(id);
+            return new Book(book.getId(), book.getName(), book.getPublicationYear(), book.getAuthor(), book.getDescription());
+        } catch (ObjectNotFoundException e) {
+            String errorMessage = String.format("Книга с id %d не найдена", id);
+            LOGGER.debug(String.format("%s %s", "Ошибка при получении книги.", e.getMessage()), e);
+            LOGGER.error(errorMessage);
+            throw new BookNotFoundException(errorMessage);
         }
     }
 
     @Override
     public List<Book> getAllBooks() {
-        try {
-            return this.bookRepository.getAllBooks();
-        } catch (RuntimeException e) {
-            String errorMessage = "Ошибка при получении всех книг.";
-            LOGGER.error(String.format("%s %s", errorMessage, e.getMessage()), e);
-            throw new BookServiceOperationException(errorMessage, e);
+        return bookRepository.getAllBooks();
+    }
+
+    @Override
+    public void throwBookNotFoundExceptionIfBookByIdNotContains(Long bookId, String debugMessage) {
+        if (!bookRepository.containsById(bookId)) {
+            String errorMessage = String.format("Книга с id %d не найдена", bookId);
+            LOGGER.debug(debugMessage);
+            LOGGER.error(errorMessage);
+            throw new BookNotFoundException(errorMessage);
         }
     }
 }

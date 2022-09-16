@@ -8,4 +8,6 @@ public interface UserRepository {
     User getUserById(Long id);
 
     User getUserByLogin(String login);
+
+    boolean containsByLogin(String login);
 }

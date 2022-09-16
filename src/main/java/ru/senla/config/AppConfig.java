@@ -17,7 +17,6 @@ import ru.senla.util.EmailSender;
 public class AppConfig {
     @Value("${email.sender.username}")
     private String username;
-
     @Value("${email.sender.password}")
     private String password;
 

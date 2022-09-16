@@ -49,8 +49,8 @@ public class Request implements Serializable {
 
     @PrePersist
     protected void onCreate() {
-        this.createDttm = LocalDateTime.now();
-        this.requestStatus = RequestStatus.NEW;
+        createDttm = LocalDateTime.now();
+        requestStatus = RequestStatus.NEW;
     }
 
     public Request() {
