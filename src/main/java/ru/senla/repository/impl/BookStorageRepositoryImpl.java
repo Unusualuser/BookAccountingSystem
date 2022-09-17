@@ -42,13 +42,6 @@ public class BookStorageRepositoryImpl implements BookStorageRepository {
     }
 
     @Override
-    public void incrementQuantityByBookId(Long id) {
-        Long additionalQuantity = 1L;
-
-        addQuantityByBookId(id, additionalQuantity);
-    }
-
-    @Override
     public void decrementQuantityByBookId(Long id) {
         Long quantityToBeReduce = 1L;
 

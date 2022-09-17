@@ -4,8 +4,6 @@ package ru.senla.service;
 public interface BookStorageService {
     void addQuantityByBookIdCloseRequestsIfExistsAndNotifyUsers(Long id, Long additionalQuantity);
 
-    void incrementQuantityByBookId(Long id);
-
     void decrementQuantityByBookId(Long id);
 
     void deleteBookStorageByBookId(Long bookId);

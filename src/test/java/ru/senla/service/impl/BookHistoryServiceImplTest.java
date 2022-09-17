@@ -110,7 +110,7 @@ class BookHistoryServiceImplTest {
 
     @DisplayName("JUnit positive test for BookHistoryServiceImplTest returnRentedBook method")
     @Test
-    void givenBookHistoryId_whenReturnRentedBookInvoked_thenRepoGetBookHistoryByIdAndBookStorageServiceIncrementQuantityByBookIdCalledReturnDateSet() {
+    void givenBookHistoryId_whenReturnRentedBookInvoked_thenRepoGetBookHistoryByIdAndBookStorageServiceAddQuantityByBookIdCloseRequestsIfExistsAndNotifyUsersCalledReturnDateSet() {
         // arrange
         Long bookHistoryId = bookHistory.getId();
         Long bookId = bookHistory.getBook().getId();
@@ -122,7 +122,7 @@ class BookHistoryServiceImplTest {
 
         // assert
         verify(bookHistoryRepository, times(1)).getBookHistoryById(bookHistoryId);
-        verify(bookStorageService, times(1)).incrementQuantityByBookId(bookId);
+        verify(bookStorageService, times(1)).addQuantityByBookIdCloseRequestsIfExistsAndNotifyUsers(bookId, 1L);
         assertEquals(bookHistory.getReturnDate(), LocalDate.now());
     }
 

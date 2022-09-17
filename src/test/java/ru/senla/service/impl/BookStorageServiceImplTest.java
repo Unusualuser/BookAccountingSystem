@@ -101,19 +101,6 @@ class BookStorageServiceImplTest {
         assertThrows(BookNotFoundException.class, () -> bookStorageService.addQuantityByBookIdCloseRequestsIfExistsAndNotifyUsers(nonexistentBookId, additionalQuantity));
     }
 
-    @DisplayName("JUnit positive test for BookStorageServiceImplTest incrementQuantityByBookId method")
-    @Test
-    void givenBookId_whenIncrementQuantityByBookIdInvoked_thenRepoIncrementQuantityByBookIdCalled() {
-        // act
-        Long bookId = bookStorage.getBook().getId();
-
-        // arrange
-        bookStorageService.incrementQuantityByBookId(bookId);
-
-        // assert
-        verify(bookStorageRepository, times(1)).incrementQuantityByBookId(bookId);
-    }
-
     @DisplayName("JUnit positive test for BookStorageServiceImplTest decrementQuantityByBookId method")
     @Test
     void givenBookId_whenDecrementQuantityByBookIdInvoked_thenRepoDecrementQuantityByBookIdCalled() {

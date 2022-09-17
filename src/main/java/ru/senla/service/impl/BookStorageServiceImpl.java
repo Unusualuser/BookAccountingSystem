@@ -52,11 +52,6 @@ public class BookStorageServiceImpl implements BookStorageService {
     }
 
     @Override
-    public void incrementQuantityByBookId(Long id) {
-        bookStorageRepository.incrementQuantityByBookId(id);
-    }
-
-    @Override
     public void decrementQuantityByBookId(Long id) {
         bookStorageRepository.decrementQuantityByBookId(id);
     }

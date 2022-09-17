@@ -66,7 +66,7 @@ public class BookHistoryServiceImpl implements BookHistoryService {
         LocalDate returnDate = LocalDate.now();
         bookHistory.setReturnDate(returnDate);
 
-        bookStorageService.incrementQuantityByBookId(bookHistory.getBook().getId());
+        bookStorageService.addQuantityByBookIdCloseRequestsIfExistsAndNotifyUsers(bookHistory.getBook().getId(), 1L);
     }
 
     @Override

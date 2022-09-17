@@ -7,8 +7,6 @@ public interface BookStorageRepository {
 
     void reduceQuantityByBookId(Long id, Long quantityToBeReduce);
 
-    void incrementQuantityByBookId(Long id);
-
     void decrementQuantityByBookId(Long id);
 
     Long getQuantityByBookId(Long id);
