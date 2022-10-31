@@ -40,6 +40,7 @@ class UserServiceImplTest {
                 1L, "andrew", "andrew", UserRole.ROLE_USER, "email@mail.ru");
         invalidUser = new User("", "", "",
                 -1L, "", "", UserRole.ROLE_USER, "");
+        userService.setPasswordEncoder(passwordEncoder);
     }
 
     @DisplayName("JUnit positive test for UserServiceImplTest registerUser method")

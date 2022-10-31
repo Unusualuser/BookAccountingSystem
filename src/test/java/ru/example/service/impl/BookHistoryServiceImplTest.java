@@ -65,6 +65,7 @@ class BookHistoryServiceImplTest {
                                         LocalDate.of(2022, 11, 20),
                                         null);
         invalidBookHistory = new BookHistory(-1L, null, null, null, null, null);
+        bookHistoryService.setBookService(bookService);
     }
 
     @DisplayName("JUnit positive test for BookHistoryServiceImplTest rentBook method")

@@ -11,6 +11,7 @@
 * Учёт возвращённых книг
 
 ## Используемые технологии:
+* Spring Boot
 * Spring MVC
 * Spring Security
 * Hibernate
@@ -21,7 +22,7 @@
 ## Инструкция по сборке и запуску Docker-контейнеров с этим сервисом
 1. Из корневой директории выполнить команду для сборки приложения: <br> `mvn clean install` <br>
 2. Из корневой директории выполнить команду для сборки и запуска docker-контейнеров (базы данных и приложения): <br> `docker compose up` <br>
-3. Готово. Приложение доступно по адресу: <br> `http://localhost:8080/book-accounting-system` <br>
+3. Готово. Приложение доступно по адресу: <br> `http://localhost:8080` <br>
 
 ### API-документация доступна по адресу: 
-> http://localhost:8080/book-accounting-system/swagger-ui.html <br>
+> http://localhost:8080/swagger-ui.html <br>

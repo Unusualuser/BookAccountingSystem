@@ -21,3 +21,4 @@ META-INF/
 *.iws
 /target/
 logs/
+src/test/logs/

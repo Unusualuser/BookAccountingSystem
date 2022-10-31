@@ -1,5 +1,6 @@
 package ru.example.service.impl;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +41,11 @@ class RequestServiceImplTest {
     private RequestServiceImpl requestService;
     private final Long bookIdForTest = 1L;
     private final Long invalidBookIdForTest = -1L;
+
+    @BeforeEach
+    public void init() {
+        requestService.setBookService(bookService);
+    }
 
     @DisplayName("JUnit positive test for RequestServiceImplTest requestBookByIdAndUserLogin method")
     @Test

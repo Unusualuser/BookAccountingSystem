@@ -24,6 +24,10 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
     }
 
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
+
     @Transactional
     @Override
     public void registerUser(User user) {

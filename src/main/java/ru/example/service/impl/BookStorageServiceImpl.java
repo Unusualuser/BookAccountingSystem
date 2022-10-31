@@ -33,6 +33,14 @@ public class BookStorageServiceImpl implements BookStorageService {
         this.emailSender = emailSender;
     }
 
+    public void setRequestService(RequestService requestService) {
+        this.requestService = requestService;
+    }
+
+    public void setBookService(BookService bookService) {
+        this.bookService = bookService;
+    }
+
     @Transactional
     @Override
     public void addQuantityByBookIdCloseRequestsIfExistsAndNotifyUsers(Long id, Long additionalQuantity) {

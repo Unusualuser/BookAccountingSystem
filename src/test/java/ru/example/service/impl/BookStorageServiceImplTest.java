@@ -54,6 +54,8 @@ class BookStorageServiceImplTest {
                                                 "автор",
                                                 "описание"),
                                         1L);
+        bookStorageService.setBookService(bookService);
+        bookStorageService.setRequestService(requestService);
     }
 
     @DisplayName("JUnit positive test for BookStorageServiceImplTest addQuantityByBookIdCloseRequestsIfExistsAndNotifyUsers method")

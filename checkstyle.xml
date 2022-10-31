@@ -188,12 +188,12 @@
         <property name="file" value="suppressions.xml"/>
     </module>
 
-    <module name="RegexpMultiline">
-        <property name="format" value="^([^\n ]+ )*(class|interface|enum) [^{]*\{\n[^\n}]"/>
-        <property name="message" value="Leave empty row after class/interface/enum definition!"/>
-        <property name="severity" value="error"/>
-        <property name="fileExtensions" value="java"/>
-    </module>
+<!--    <module name="RegexpMultiline">-->
+<!--        <property name="format" value="^([^\n ]+ )*(class|interface|enum) [^{]*\{\n[^\n}]"/>-->
+<!--        <property name="message" value="Leave empty row after class/interface/enum definition!"/>-->
+<!--        <property name="severity" value="error"/>-->
+<!--        <property name="fileExtensions" value="java"/>-->
+<!--    </module>-->
 
     <module name="RegexpMultiline">
         <property name="format" value="(?&lt;!\{\s{0,99}$)^$(?=^\s{0,99}\})"/>

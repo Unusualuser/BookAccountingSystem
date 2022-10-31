@@ -39,6 +39,10 @@ public class BookHistoryServiceImpl implements BookHistoryService {
         this.bookStorageService = bookStorageService;
     }
 
+    public void setBookService(BookService bookService) {
+        this.bookService = bookService;
+    }
+
     @Transactional
     @Override
     public void rentBook(Long bookId, String userLogin) {

@@ -35,6 +35,10 @@ public class RequestServiceImpl implements RequestService {
         this.bookStorageService = bookStorageService;
     }
 
+    public void setBookService(BookService bookService) {
+        this.bookService = bookService;
+    }
+
     @Transactional
     @Override
     public void requestBookByIdAndUserLogin(Long bookId, String userLogin) {
