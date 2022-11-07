@@ -60,7 +60,7 @@ public class UserRepositoryImpl implements UserRepository {
     private User getUserByLoginOrNullIfNotExists(String login) {
         List<User> userList = sessionFactory.getCurrentSession().createNativeQuery(
                  "SELECT user_id, name, address, phone_number, login, password, role, email " +
-                    "FROM public.user " +
+                    "FROM public.user_ " +
                     "WHERE login = :login", User.class)
                 .setParameter("login", login)
                 .list();

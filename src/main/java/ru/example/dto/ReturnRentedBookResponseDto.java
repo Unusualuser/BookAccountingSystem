@@ -8,15 +8,15 @@ public class ReturnRentedBookResponseDto implements Serializable {
     public ReturnRentedBookResponseDto() {
     }
 
-    public ReturnRentedBookResponseDto(Long changedBookHistoryId) {
-        this.closedBookHistoryId = changedBookHistoryId;
+    public ReturnRentedBookResponseDto(Long closedBookHistoryId) {
+        this.closedBookHistoryId = closedBookHistoryId;
     }
 
-    public Long getChangedBookHistoryId() {
+    public Long getClosedBookHistoryId() {
         return closedBookHistoryId;
     }
 
-    public void setChangedBookHistoryId(Long changedBookHistoryId) {
-        this.closedBookHistoryId = changedBookHistoryId;
+    public void setClosedBookHistoryId(Long closedBookHistoryId) {
+        this.closedBookHistoryId = closedBookHistoryId;
     }
 }

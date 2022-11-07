@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "user", schema = "public")
+@Table(name = "user_", schema = "public")
 public class User extends Person implements Serializable, UserDetails {
     @Id
     @SequenceGenerator(name = "user_seq", sequenceName = "user_user_id_seq", allocationSize = 0)
