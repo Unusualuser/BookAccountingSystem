@@ -1,5 +1,5 @@
 -- create table book
-CREATE TABLE public.book
+CREATE TABLE IF NOT EXISTS public.book
 (
     book_id          BIGINT       NOT NULL,
     name             VARCHAR(30) NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE public.book
 
 
 -- create sequence for book
-CREATE SEQUENCE book_book_id_seq
+CREATE SEQUENCE IF NOT EXISTS book_book_id_seq
     INCREMENT 1
     START WITH 1
     MINVALUE 1
@@ -20,7 +20,7 @@ CREATE SEQUENCE book_book_id_seq
 
 
 -- create table book_storage
-CREATE TABLE public.book_storage
+CREATE TABLE IF NOT EXISTS public.book_storage
 (
     book_storage_id BIGINT NOT NULL,
     book_id         BIGINT NOT NULL,
@@ -29,11 +29,11 @@ CREATE TABLE public.book_storage
 );
 
 ALTER TABLE public.book_storage
-    ADD CONSTRAINT FK_BOOK_STORAGE_ON_BOOK FOREIGN KEY (book_id) REFERENCES public.book (book_id);
+    ADD CONSTRAINT IF NOT EXISTS FK_BOOK_STORAGE_ON_BOOK FOREIGN KEY (book_id) REFERENCES public.book (book_id);
 
 
 -- create sequence for book_storage
-CREATE SEQUENCE book_storage_book_storage_id_seq
+CREATE SEQUENCE IF NOT EXISTS book_storage_book_storage_id_seq
     INCREMENT 1
     START WITH 1
     MINVALUE 1
@@ -42,14 +42,14 @@ CREATE SEQUENCE book_storage_book_storage_id_seq
 
 
 -- create trigger for book_storage
-CREATE TRIGGER after_insert_book_trigger
+CREATE TRIGGER IF NOT EXISTS after_insert_book_trigger
     AFTER INSERT ON public.book
     FOR EACH ROW
 CALL "ru.example.testneed.AfterInsertBookTrigger";
 
 
 -- create table user_
-CREATE TABLE public.user_
+CREATE TABLE IF NOT EXISTS public.user_
 (
     user_id      BIGINT       NOT NULL,
     name         VARCHAR(100),
@@ -63,11 +63,11 @@ CREATE TABLE public.user_
 );
 
 ALTER TABLE public.user_
-    ADD CONSTRAINT uc_user_login UNIQUE (login);
+    ADD CONSTRAINT IF NOT EXISTS uc_user_login UNIQUE (login);
 
 
 -- create sequence for user_
-CREATE SEQUENCE user_user_id_seq
+CREATE SEQUENCE IF NOT EXISTS user_user_id_seq
 INCREMENT 1
 START WITH 1
 MINVALUE 1
@@ -76,7 +76,7 @@ CACHE 1;
 
 
 -- create table book_history
-CREATE TABLE public.book_history
+CREATE TABLE IF NOT EXISTS public.book_history
 (
     book_history_id      BIGINT NOT NULL,
     book_id              BIGINT NOT NULL,
@@ -88,14 +88,14 @@ CREATE TABLE public.book_history
 );
 
 ALTER TABLE public.book_history
-    ADD CONSTRAINT FK_BOOK_HISTORY_ON_BOOK FOREIGN KEY (book_id) REFERENCES public.book (book_id);
+    ADD CONSTRAINT IF NOT EXISTS FK_BOOK_HISTORY_ON_BOOK FOREIGN KEY (book_id) REFERENCES public.book (book_id);
 
 ALTER TABLE public.book_history
-    ADD CONSTRAINT FK_BOOK_HISTORY_ON_USER FOREIGN KEY (user_id) REFERENCES public.user_ (user_id);
+    ADD CONSTRAINT IF NOT EXISTS FK_BOOK_HISTORY_ON_USER FOREIGN KEY (user_id) REFERENCES public.user_ (user_id);
 
 
 -- create sequence for book_history
-CREATE SEQUENCE book_history_book_history_id_seq
+CREATE SEQUENCE IF NOT EXISTS book_history_book_history_id_seq
 INCREMENT 1
 START WITH 1
 MINVALUE 1
@@ -104,7 +104,7 @@ CACHE 1;
 
 
 -- create table request
-CREATE TABLE request
+CREATE TABLE IF NOT EXISTS request
 (
     request_id     BIGINT                      NOT NULL,
     book_id        BIGINT                      NOT NULL,
@@ -115,14 +115,14 @@ CREATE TABLE request
 );
 
 ALTER TABLE public.request
-    ADD CONSTRAINT FK_REQUEST_ON_BOOK FOREIGN KEY (book_id) REFERENCES public.book (book_id);
+    ADD CONSTRAINT IF NOT EXISTS FK_REQUEST_ON_BOOK FOREIGN KEY (book_id) REFERENCES public.book (book_id);
 
 ALTER TABLE public.request
-    ADD CONSTRAINT FK_REQUEST_ON_USER FOREIGN KEY (user_id) REFERENCES public.user_ (user_id);
+    ADD CONSTRAINT IF NOT EXISTS FK_REQUEST_ON_USER FOREIGN KEY (user_id) REFERENCES public.user_ (user_id);
 
 
 -- create sequence for request
-CREATE SEQUENCE request_request_id_seq
+CREATE SEQUENCE IF NOT EXISTS request_request_id_seq
 INCREMENT 1
 START WITH 1
 MINVALUE 1
